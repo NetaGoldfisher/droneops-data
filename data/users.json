@@ -1,0 +1,22 @@
+[
+  {
+    "id": "u-admin",
+    "username": "admin",
+    "fullname": "מנהל ראשי",
+    "email": "admin@droneops.local",
+    "password": "admin123",
+    "role": "admin",
+    "status": "active",
+    "createdAt": "2026-01-01"
+  },
+  {
+    "id": "u-pilot",
+    "username": "pilot",
+    "fullname": "טייס ראשי",
+    "email": "pilot@droneops.local",
+    "password": "pilot123",
+    "role": "user",
+    "status": "active",
+    "createdAt": "2026-01-01"
+  }
+]
