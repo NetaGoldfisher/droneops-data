@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DroneOps — מערכת ניהול רחפנים</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f7f5;--surface:#fff;--border:#e2e2de;--border-dark:#c8c8c2;--text:#1a1a18;--text-sec:#6b6b65;--green:#2d6a4f;--green-l:#e8f5ee;--yellow:#b5860d;--yellow-l:#fdf3dc;--red:#c0392b;--red-l:#fdecea;--blue:#1a4fa0;--blue-l:#e8eef8;--purple:#6b3fa0;--purple-l:#f0eaf8;--mono:'IBM Plex Mono',monospace;--sans:'Heebo',sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;}
+.login-box{background:var(--surface);border:1px solid var(--border);padding:48px;width:380px;}
+.login-logo{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-sec);margin-bottom:32px;display:flex;align-items:center;gap:8px;}
+.login-logo::before{content:'';width:6px;height:6px;background:var(--text);display:inline-block;}
+.login-title{font-size:24px;font-weight:700;margin-bottom:6px;}
+.login-sub{color:var(--text-sec);font-size:13px;margin-bottom:28px;}
+.login-error{color:var(--red);font-size:12px;margin-top:8px;display:none;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:12px;font-weight:600;margin-bottom:5px;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;border:1px solid var(--border);background:var(--bg);font-family:var(--sans);font-size:13px;color:var(--text);outline:none;transition:border-color .15s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--text);background:#fff;}
+.form-group textarea{resize:vertical;min-height:72px;}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border:1px solid transparent;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-primary{background:var(--text);color:#fff;border-color:var(--text);}
+.btn-primary:hover{background:#333;}
+.btn-secondary{background:transparent;color:var(--text);border-color:var(--border-dark);}
+.btn-secondary:hover{border-color:var(--text);}
+.btn-danger{background:transparent;color:var(--red);border-color:var(--red);}
+.btn-danger:hover{background:var(--red-l);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.btn-full{width:100%;justify-content:center;}
+.btn-icon{padding:4px 7px;font-size:13px;}
+#app{display:none;min-height:100vh;}
+.topbar{background:var(--text);color:#fff;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-brand{font-family:var(--mono);font-size:12px;letter-spacing:.12em;display:flex;align-items:center;gap:10px;}
+.topbar-brand .dot{width:6px;height:6px;background:#fff;display:inline-block;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.topbar-user{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.6);}
+.btn-logout{background:transparent;color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);padding:5px 12px;font-size:11px;cursor:pointer;font-family:var(--sans);font-weight:600;transition:all .15s;}
+.btn-logout:hover{border-color:#fff;color:#fff;}
+.layout{display:flex;}
+.sidebar{width:196px;min-height:calc(100vh - 52px);background:var(--surface);border-left:1px solid var(--border);padding:20px 0;flex-shrink:0;}
+.sidebar-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-sec);margin-bottom:8px;padding:0 16px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:9px 16px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-sec);transition:all .12s;border-right:2px solid transparent;}
+.nav-item:hover{color:var(--text);background:var(--bg);}
+.nav-item.active{color:var(--text);background:var(--bg);border-right-color:var(--text);font-weight:700;}
+.nav-section{margin-bottom:20px;}
+.main{flex:1;padding:28px;min-width:0;}
+.page{display:none;}.page.active{display:block;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.page-title{font-size:20px;font-weight:700;}
+.page-sub{font-size:11px;color:var(--text-sec);margin-top:3px;font-family:var(--mono);}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:24px;}
+.stat-box{background:var(--surface);padding:18px 16px;}
+.stat-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-sec);margin-bottom:6px;}
+.stat-value{font-size:28px;font-weight:700;line-height:1;font-family:var(--mono);}
+.stat-meta{font-size:11px;color:var(--text-sec);margin-top:3px;}
+.table-wrap{background:var(--surface);border:1px solid var(--border);overflow:auto;}
+table{width:100%;border-collapse:collapse;}
+thead tr{border-bottom:2px solid var(--border);}
+th{padding:10px 14px;text-align:right;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-sec);font-weight:500;background:var(--bg);white-space:nowrap;}
+td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg);}
+.actions{display:flex;gap:5px;}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;font-size:11px;font-weight:600;font-family:var(--mono);white-space:nowrap;}
+.badge-green{background:var(--green-l);color:var(--green);}
+.badge-yellow{background:var(--yellow-l);color:var(--yellow);}
+.badge-red{background:var(--red-l);color:var(--red);}
+.badge-blue{background:var(--blue-l);color:var(--blue);}
+.badge-gray{background:var(--border);color:var(--text-sec);}
+.tail-num{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.05em;background:var(--text);color:#fff;padding:3px 8px;display:inline-block;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(26,26,24,.55);z-index:200;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);max-height:92vh;overflow-y:auto;max-width:95vw;}
+.modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;}
+.modal-title{font-size:16px;font-weight:700;}
+.modal-close{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-sec);line-height:1;}
+.modal-body{padding:22px;}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface);}
+.sec-title{font-size:11px;font-weight:700;margin:20px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--text-sec);}
+.sw-list{display:flex;flex-direction:column;gap:4px;margin-bottom:8px;}
+.sw-item{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);padding:7px 10px;font-size:12px;}
+.sw-item-name{font-weight:600;}
+.sw-item-ver{font-family:var(--mono);color:var(--text-sec);font-size:11px;}
+.sw-add-row{display:grid;grid-template-columns:1fr 100px auto;gap:6px;}
+.flight-item{background:var(--surface);border:1px solid var(--border);margin-bottom:-1px;padding:14px 16px;}
+.flight-item:last-child{margin-bottom:0;}
+.flight-header{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
+.flight-date{font-family:var(--mono);font-size:12px;font-weight:600;}
+.flight-dur{font-family:var(--mono);font-size:11px;color:var(--blue);background:var(--blue-l);padding:2px 7px;}
+.flight-events{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.event-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;font-size:11px;font-weight:600;background:var(--yellow-l);color:var(--yellow);border:1px solid #e8cc80;}
+.event-tag.critical{background:var(--red-l);color:var(--red);border-color:#f5a89e;}
+.event-tag.info{background:var(--blue-l);color:var(--blue);border-color:#b8cfee;}
+.flight-notes{font-size:12px;color:var(--text-sec);margin-top:6px;font-style:italic;}
+.search-bar{display:flex;gap:8px;margin-bottom:14px;}
+.search-bar input,.search-bar select{padding:8px 12px;border:1px solid var(--border);background:var(--surface);font-family:var(--sans);font-size:13px;color:var(--text);outline:none;}
+.search-bar input:focus,.search-bar select:focus{border-color:var(--text);}
+.empty-state{text-align:center;padding:36px 20px;color:var(--text-sec);font-size:13px;}
+.empty-state .ico{font-size:28px;margin-bottom:8px;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.chip{display:inline-flex;align-items:center;gap:5px;background:var(--yellow-l);border:1px solid #e8cc80;padding:4px 10px;font-size:11px;font-weight:600;color:var(--yellow);}
+.chip .rm{cursor:pointer;color:var(--text-sec);font-size:13px;border:none;background:none;padding:0;line-height:1;}
+.chip .rm:hover{color:var(--red);}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:4px;}
+.status-dot.active{background:var(--green);}
+.status-dot.idle{background:var(--yellow);}
+.status-dot.maintenance{background:var(--blue);}
+.status-dot.offline{background:var(--red);}
+
+/* DRONE DETAIL MODAL */
+.detail-header-strip{background:var(--text);color:#fff;padding:20px 24px;display:flex;align-items:center;gap:16px;}
+.detail-tail-big{font-family:var(--mono);font-size:24px;font-weight:700;letter-spacing:.08em;background:rgba(255,255,255,.12);padding:4px 12px;}
+.detail-drone-name{font-size:16px;font-weight:600;}
+.detail-drone-model{font-size:11px;opacity:.55;font-family:var(--mono);margin-top:2px;}
+.detail-stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);}
+.detail-stat{background:var(--bg);padding:12px 16px;}
+.detail-stat-label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-sec);margin-bottom:3px;}
+.detail-stat-val{font-size:20px;font-weight:700;font-family:var(--mono);}
+.flight-row{padding:14px 20px;border-bottom:1px solid var(--border);}
+.flight-row:last-child{border-bottom:none;}
+.flight-row:hover{background:var(--bg);}
+.flight-row-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.flight-row-events{margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;}
+.flight-row-notes{font-size:11px;color:var(--text-sec);margin-top:5px;font-style:italic;}
+.detail-section-title{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-sec);padding:12px 20px 8px;border-bottom:1px solid var(--border);background:var(--bg);}
+
+/* NAV CALIBRATION */
+.nav-card{background:var(--surface);border:1px solid var(--border);margin-bottom:16px;}
+.nav-card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);}
+.nav-card-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.nav-card-icon{font-size:18px;}
+.nav-card-last{font-family:var(--mono);font-size:11px;color:var(--text-sec);}
+.nav-card-body{padding:0;}
+.nav-hist-item{display:grid;grid-template-columns:140px 1fr auto auto;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--border);font-size:13px;}
+.nav-hist-item:last-child{border-bottom:none;}
+.nav-hist-date{font-family:var(--mono);font-size:12px;font-weight:600;}
+.nav-hist-notes{font-size:12px;color:var(--text-sec);}
+.nav-hist-ver{font-family:var(--mono);font-size:11px;background:var(--purple-l);color:var(--purple);padding:2px 7px;}
+.nav-add-row{padding:12px 18px;border-top:1px solid var(--border);background:var(--bg);display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;}
+.nav-add-row .form-group{margin-bottom:0;flex:1;min-width:130px;}
+.nav-add-row label{font-size:11px;font-weight:600;display:block;margin-bottom:4px;}
+.nav-add-row input,.nav-add-row textarea{padding:7px 10px;border:1px solid var(--border);background:#fff;font-family:var(--sans);font-size:13px;color:var(--text);outline:none;width:100%;}
+.nav-add-row input:focus,.nav-add-row textarea:focus{border-color:var(--text);}
+.nav-summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:20px;}
+.nav-summary-box{background:var(--surface);padding:14px 16px;}
+.nav-summary-label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-sec);margin-bottom:4px;}
+.nav-summary-val{font-size:13px;font-weight:700;font-family:var(--mono);}
+.nav-summary-meta{font-size:11px;color:var(--text-sec);margin-top:2px;}
+.drone-nav-filter{display:flex;gap:8px;margin-bottom:16px;align-items:center;}
+.drone-nav-filter select{padding:8px 12px;border:1px solid var(--border);background:var(--surface);font-family:var(--sans);font-size:13px;color:var(--text);outline:none;}
+
+/* USER MANAGEMENT */
+.login-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:24px;}
+.login-tab{flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text-sec);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
+.login-tab.active{color:var(--text);border-bottom-color:var(--text);}
+.login-panel{display:none;}.login-panel.active{display:block;}
+.login-link{font-size:12px;color:var(--blue);cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+.login-link:hover{color:var(--text);}
+.login-msg{font-size:12px;margin-top:8px;display:none;padding:8px 10px;}
+.login-msg.success{background:var(--green-l);color:var(--green);border:1px solid #b2d8c4;}
+.login-msg.error{background:var(--red-l);color:var(--red);border:1px solid #f5a89e;}
+.admin-badge{display:inline-flex;align-items:center;gap:4px;background:#1a1a18;color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:2px 8px;text-transform:uppercase;}
+.role-badge-admin{background:var(--purple-l);color:var(--purple);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;letter-spacing:.05em;}
+.role-badge-user{background:var(--blue-l);color:var(--blue);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;letter-spacing:.05em;}
+.user-status-active{color:var(--green);font-weight:600;font-size:12px;}
+.user-status-pending{color:var(--yellow);font-weight:600;font-size:12px;}
+.user-status-disabled{color:var(--red);font-weight:600;font-size:12px;}
+.reset-token-box{background:var(--bg);border:1px solid var(--border);padding:10px 14px;font-family:var(--mono);font-size:12px;margin-top:8px;word-break:break-all;color:var(--blue);}
+.pwd-strength{height:3px;border-radius:2px;margin-top:5px;transition:all .3s;}
+.pwd-strength.weak{background:var(--red);width:33%;}
+.pwd-strength.medium{background:var(--yellow);width:66%;}
+.pwd-strength.strong{background:var(--green);width:100%;}
+
+/* MALFUNCTIONS */
+.malfunction-card{border:1px solid var(--border);margin-bottom:10px;background:var(--surface);}
+.malfunction-card.open-mal{border-color:#f5a89e;border-right:4px solid var(--red);}
+.malfunction-card.closed-mal{border-color:#b2d8c4;border-right:4px solid var(--green);}
+.mal-header{display:flex;align-items:center;gap:10px;padding:12px 16px;flex-wrap:wrap;}
+.mal-title{font-weight:700;font-size:13px;flex:1;}
+.mal-date{font-family:var(--mono);font-size:11px;color:var(--text-sec);}
+.mal-work{font-size:12px;color:var(--text-sec);padding:6px 16px 10px;border-bottom:1px solid var(--border);}
+.mal-work-label{font-size:10px;font-weight:700;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--text-sec);display:block;margin-bottom:3px;}
+.mal-resolution{padding:10px 16px;background:var(--green-l);}
+.mal-res-label{font-size:10px;font-weight:700;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--green);display:block;margin-bottom:6px;}
+.mal-res-grid{display:flex;gap:20px;flex-wrap:wrap;font-size:12px;}
+.mal-res-grid span{color:var(--text-sec);}
+.mal-res-grid b{color:var(--text);font-weight:600;}
+.badge-open{background:var(--red-l);color:var(--red);font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 9px;white-space:nowrap;}
+.badge-closed-mal{background:var(--green-l);color:var(--green);font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 9px;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH SCREENS ===== -->
+<div id="auth-screens">
+
+<!-- LOGIN -->
+<div id="login-screen" style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
+  <div class="login-box" style="width:420px;">
+    <div class="login-logo">DRONEOPS</div>
+    <div class="login-tabs">
+      <div class="login-tab active" onclick="switchAuthTab('tab-login',this)">כניסה</div>
+      <div class="login-tab" onclick="switchAuthTab('tab-register',this)">הרשמה</div>
+      <div class="login-tab" onclick="switchAuthTab('tab-forgot',this)">שכחתי סיסמא</div>
+    </div>
+
+    <!-- LOGIN PANEL -->
+    <div class="login-panel active" id="tab-login">
+      <div class="login-title">כניסה למערכת</div>
+      <div class="login-sub">ניהול רחפנים — גישה מאובטחת</div>
+      <div class="form-group"><label>שם משתמש / אימייל</label><input type="text" id="lu" placeholder="admin" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div class="form-group"><label>סיסמא</label><input type="password" id="lp" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div class="login-msg error" id="lerr">שם משתמש או סיסמא שגויים</div>
+      <br>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">כניסה</button>
+      <div style="margin-top:12px;font-size:11px;color:var(--text-sec);font-family:var(--mono);text-align:center;">admin / admin123 &nbsp;|&nbsp; pilot / pilot123</div>
+    </div>
+
+    <!-- REGISTER PANEL -->
+    <div class="login-panel" id="tab-register">
+      <div class="login-title">הרשמה</div>
+      <div class="login-sub">צור חשבון חדש — ממתין לאישור מנהל</div>
+      <div class="form-group"><label>שם מלא ✱</label><input type="text" id="reg-fullname" placeholder="ישראל ישראלי"/></div>
+      <div class="form-group"><label>שם משתמש ✱</label><input type="text" id="reg-username" placeholder="israel_i" oninput="checkUsernameAvail()"/></div>
+      <div id="reg-user-avail" style="font-size:11px;margin-top:-8px;margin-bottom:8px;"></div>
+      <div class="form-group"><label>אימייל ✱</label><input type="email" id="reg-email" placeholder="israel@example.com"/></div>
+      <div class="form-group">
+        <label>סיסמא ✱</label>
+        <input type="password" id="reg-pass" placeholder="לפחות 6 תווים" oninput="checkPwdStrength(this.value,'reg-strength')"/>
+        <div class="pwd-strength" id="reg-strength"></div>
+      </div>
+      <div class="form-group"><label>אימות סיסמא ✱</label><input type="password" id="reg-pass2" placeholder="חזור על הסיסמא"/></div>
+      <div class="login-msg error" id="reg-err"></div>
+      <div class="login-msg success" id="reg-ok"></div>
+      <br>
+      <button class="btn btn-primary btn-full" onclick="doRegister()">שלח בקשת הרשמה</button>
+    </div>
+
+    <!-- FORGOT PASSWORD PANEL -->
+    <div class="login-panel" id="tab-forgot">
+      <div class="login-title">שחזור סיסמא</div>
+      <div class="login-sub">הזן אימייל לקבלת קישור איפוס</div>
+      <div class="form-group"><label>אימייל</label><input type="email" id="forgot-email" placeholder="israel@example.com"/></div>
+      <div class="login-msg error" id="forgot-err"></div>
+      <div class="login-msg success" id="forgot-ok"></div>
+      <br>
+      <button class="btn btn-primary btn-full" onclick="doForgot()">שלח קישור איפוס</button>
+      <div style="margin-top:16px;" id="forgot-token-area" hidden>
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px;">🔑 טוקן איפוס (סימולציה — במקום אימייל אמיתי):</div>
+        <div class="reset-token-box" id="forgot-token-val"></div>
+        <div style="margin-top:12px;">
+          <div class="form-group"><label>טוקן</label><input type="text" id="reset-token-input" placeholder="הדבק את הטוקן"/></div>
+          <div class="form-group">
+            <label>סיסמא חדשה</label>
+            <input type="password" id="reset-new-pass" placeholder="סיסמא חדשה" oninput="checkPwdStrength(this.value,'reset-strength')"/>
+            <div class="pwd-strength" id="reset-strength"></div>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="doResetPassword()">אפס סיסמא</button>
+          <div class="login-msg error" id="reset-err" style="margin-top:8px;"></div>
+          <div class="login-msg success" id="reset-ok" style="margin-top:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div><!-- /auth-screens -->
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand"><span class="dot"></span>DRONEOPS</div>
+    <div class="topbar-right" id="topbar-right-btns">
+      <button class="btn-logout" onclick="showGHConfigModal()" style="font-size:11px;">⚙️ GitHub</button>
+      <span class="topbar-user" id="topbar-user"></span>
+      <button class="btn-logout" onclick="doLogout()">יציאה</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="nav-section">
+        <div class="sidebar-label">ניווט</div>
+        <div class="nav-item active" onclick="showPage('dashboard',this)">⊞&nbsp; דאשבורד</div>
+        <div class="nav-item" onclick="showPage('drones',this)">◎&nbsp; רחפנים</div>
+        <div class="nav-item" onclick="showPage('flights',this)">✈&nbsp; טיסות</div>
+        <div class="nav-item" onclick="showPage('software',this)">◧&nbsp; תוכנות</div>
+        <div class="nav-item" onclick="showPage('events',this)">⚑&nbsp; אירועים מיוחדים</div>
+        <div class="nav-item" onclick="showPage('navigation',this)">🧭&nbsp; ניווט</div>
+        <div class="nav-item" onclick="showPage('malfunctions',this)">🔧&nbsp; תקלות</div>
+        <div class="nav-item admin-only" id="nav-admin" onclick="showPage('admin',this)" style="display:none;">👑&nbsp; ניהול משתמשים</div>
+      </div>
+    </div>
+    <div class="main">
+
+      <!-- MALFUNCTIONS PAGE -->
+      <div class="page" id="page-malfunctions">
+        <div class="page-header">
+          <div><div class="page-title">🔧 תקלות</div><div class="page-sub">תיעוד, מעקב וסגירת תקלות לפי רחפן</div></div>
+          <button class="btn btn-primary" onclick="openMalfunctionModal()">+ תקלה חדשה</button>
+        </div>
+        <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat-box"><div class="stat-label">תקלות פתוחות</div><div class="stat-value" id="mal-stat-open" style="color:var(--red);">0</div><div class="stat-meta">דורשות טיפול</div></div>
+          <div class="stat-box"><div class="stat-label">תקלות סגורות</div><div class="stat-value" id="mal-stat-closed" style="color:var(--green);">0</div><div class="stat-meta">טופלו</div></div>
+          <div class="stat-box"><div class="stat-label">רחפנים מושפעים</div><div class="stat-value" id="mal-stat-drones">0</div><div class="stat-meta">עם תקלה פתוחה</div></div>
+        </div>
+        <div class="search-bar">
+          <select id="mal-filter-drone" onchange="renderMalfunctions()" style="min-width:200px;padding:8px 12px;border:1px solid var(--border);background:var(--surface);font-family:var(--sans);font-size:13px;outline:none;"><option value="">כל הרחפנים</option></select>
+          <select id="mal-filter-status" onchange="renderMalfunctions()" style="min-width:140px;padding:8px 12px;border:1px solid var(--border);background:var(--surface);font-family:var(--sans);font-size:13px;outline:none;">
+            <option value="">כל הסטטוסים</option>
+            <option value="open">פתוחות</option>
+            <option value="closed">סגורות</option>
+          </select>
+        </div>
+        <div id="malfunctions-list"></div>
+      </div>
+
+      <!-- ADMIN USERS PAGE -->
+      <div class="page" id="page-admin">
+        <div class="page-header">
+          <div>
+            <div class="page-title">👑 ניהול משתמשים</div>
+            <div class="page-sub">הרשאות, אישורים ומשתמשים פעילים</div>
+          </div>
+          <button class="btn btn-primary" onclick="openAddUserModal()">+ הוסף משתמש</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>שם משתמש</th><th>שם מלא</th><th>אימייל</th><th>תפקיד</th><th>סטטוס</th><th>נרשם</th><th>פעולות</th></tr></thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div><div class="page-title">דאשבורד</div><div class="page-sub">סקירת צי הרחפנים</div></div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-box"><div class="stat-label">רחפנים</div><div class="stat-value" id="st-drones">0</div><div class="stat-meta">במערכת</div></div>
+          <div class="stat-box"><div class="stat-label">פעילים</div><div class="stat-value" id="st-active">0</div><div class="stat-meta">כרגע</div></div>
+          <div class="stat-box"><div class="stat-label">טיסות</div><div class="stat-value" id="st-flights">0</div><div class="stat-meta">מתועדות</div></div>
+          <div class="stat-box"><div class="stat-label">שעות טיסה</div><div class="stat-value" id="st-hours">0</div><div class="stat-meta">סה"כ</div></div>
+          <div class="stat-box"><div class="stat-label">אירועים</div><div class="stat-value" id="st-events">0</div><div class="stat-meta">מיוחדים</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div>
+            <div class="sec-title">טיסות אחרונות</div>
+            <div id="dash-flights"></div>
+          </div>
+          <div>
+            <div class="sec-title">אירועים אחרונים</div>
+            <div id="dash-events"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DRONES -->
+      <div class="page" id="page-drones">
+        <div class="page-header">
+          <div><div class="page-title">ניהול רחפנים</div><div class="page-sub">מזוהים לפי מספר זנב</div></div>
+          <button class="btn btn-primary" onclick="openDroneModal()">+ רחפן חדש</button>
+        </div>
+        <div class="search-bar">
+          <input type="text" placeholder="חיפוש לפי מס׳ זנב, שם, דגם..." oninput="renderDrones(this.value)" style="max-width:340px"/>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>מס׳ זנב</th><th>שם / כינוי</th><th>דגם</th><th>סטטוס</th><th>תוכנות</th><th>טיסות</th><th>שעות טיסה</th><th>אירועים</th><th>תקלות</th><th>פעולות</th></tr></thead>
+            <tbody id="drones-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FLIGHTS -->
+      <div class="page" id="page-flights">
+        <div class="page-header">
+          <div><div class="page-title">יומן טיסות</div><div class="page-sub">תאריך · משך · אירועים מיוחדים</div></div>
+          <button class="btn btn-primary" onclick="openFlightModal()">+ טיסה חדשה</button>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="fsearch" placeholder="חיפוש..." oninput="renderFlights()" style="max-width:240px"/>
+          <select id="ffilter" onchange="renderFlights()" style="min-width:180px"><option value="">כל הרחפנים</option></select>
+        </div>
+        <div id="flights-list"></div>
+      </div>
+
+      <!-- SOFTWARE -->
+      <div class="page" id="page-software">
+        <div class="page-header">
+          <div><div class="page-title">תוכנות</div><div class="page-sub">מאגר התוכנות הזמינות</div></div>
+          <button class="btn btn-primary" onclick="openSoftwareModal()">+ תוכנה חדשה</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>שם</th><th>גרסה</th><th>קטגוריה</th><th>מותקנת על</th><th>פעולות</th></tr></thead>
+            <tbody id="software-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- EVENTS -->
+      <div class="page" id="page-events">
+        <div class="page-header">
+          <div><div class="page-title">אירועים מיוחדים</div><div class="page-sub">כל אירוע משויך לרחפן דרך הטיסה (מס׳ זנב)</div></div>
+          <button class="btn btn-primary" onclick="openEventTypeModal()">+ הגדר סוג אירוע</button>
+        </div>
+
+        <!-- Type definitions table -->
+        <div class="sec-title" style="margin-top:0;">סוגי אירועים מוגדרים</div>
+        <div class="table-wrap" style="margin-bottom:24px;">
+          <table>
+            <thead><tr><th>שם האירוע</th><th>חומרה</th><th>תיאור</th><th>שימוש</th><th>פעולות</th></tr></thead>
+            <tbody id="event-types-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- All event occurrences with tail number -->
+        <div class="sec-title">היסטוריית אירועים — לפי רחפן</div>
+        <div class="search-bar">
+          <select id="evt-filter-drone" onchange="renderEventOccurrences()" style="min-width:200px;padding:8px 12px;border:1px solid var(--border);background:var(--surface);font-family:var(--sans);font-size:13px;color:var(--text);outline:none;">
+            <option value="">כל הרחפנים</option>
+          </select>
+          <select id="evt-filter-type" onchange="renderEventOccurrences()" style="min-width:180px;padding:8px 12px;border:1px solid var(--border);background:var(--surface);font-family:var(--sans);font-size:13px;color:var(--text);outline:none;">
+            <option value="">כל סוגי האירועים</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>מס׳ זנב</th><th>שם רחפן</th><th>סוג אירוע</th><th>חומרה</th><th>תאריך טיסה</th><th>טייס</th></tr></thead>
+            <tbody id="event-occurrences-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- NAVIGATION PAGE -->
+      <div class="page" id="page-navigation">
+        <div class="page-header">
+          <div><div class="page-title">🧭 ניווט</div><div class="page-sub">כיולים, הקלטות ולב ניווט — לפי רחפן</div></div>
+        </div>
+        <div class="drone-nav-filter">
+          <span style="font-size:13px;font-weight:600;">רחפן:</span>
+          <select id="nav-drone-select" onchange="renderNavigationPage()" style="min-width:220px;">
+            <option value="">בחר רחפן...</option>
+          </select>
+        </div>
+        <div id="nav-page-content">
+          <div class="empty-state"><div class="ico">🧭</div>בחר רחפן לצפייה ועריכת נתוני ניווט</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- DRONE MODAL -->
+<div class="modal-bg" id="modal-drone">
+  <div class="modal" style="width:580px">
+    <div class="modal-header"><div class="modal-title" id="drone-modal-title">רחפן חדש</div><button class="modal-close" onclick="closeModal('modal-drone')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="drone-edit-id"/>
+      <div class="form-grid-2">
+        <div class="form-group"><label>מספר זנב ✱</label><input type="text" id="d-tail" placeholder="4X-BDB"/></div>
+        <div class="form-group"><label>שם / כינוי</label><input type="text" id="d-name" placeholder="Raven Alpha"/></div>
+        <div class="form-group"><label>דגם</label><input type="text" id="d-model" placeholder="DJI Matrice 300"/></div>
+        <div class="form-group"><label>סטטוס</label>
+          <select id="d-status"><option value="active">פעיל</option><option value="idle">בסרק</option><option value="maintenance">בתחזוקה</option><option value="offline">לא פעיל</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>הערות</label><textarea id="d-notes" placeholder="הערות נוספות..."></textarea></div>
+      <div class="sec-title">תוכנות מותקנות</div>
+      <div class="sw-list" id="drone-sw-list"></div>
+      <div class="sw-add-row">
+        <select id="sw-pick" style="padding:8px 10px;border:1px solid var(--border);background:var(--bg);font-family:var(--sans);font-size:13px;outline:none;"><option value="">בחר תוכנה...</option></select>
+        <input type="text" id="sw-ver-pick" placeholder="גרסה" style="padding:8px 10px;border:1px solid var(--border);background:var(--bg);font-family:var(--sans);font-size:13px;outline:none;"/>
+        <button class="btn btn-secondary" onclick="addSwToDrone()">הוסף</button>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-drone')">ביטול</button><button class="btn btn-primary" onclick="saveDrone()">שמור</button></div>
+  </div>
+</div>
+
+<!-- FLIGHT MODAL -->
+<div class="modal-bg" id="modal-flight">
+  <div class="modal" style="width:580px">
+    <div class="modal-header"><div class="modal-title" id="flight-modal-title">רישום טיסה</div><button class="modal-close" onclick="closeModal('modal-flight')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="flight-edit-id"/>
+      <div class="form-grid-2">
+        <div class="form-group"><label>רחפן ✱</label><select id="f-drone"><option value="">בחר רחפן...</option></select></div>
+        <div class="form-group"><label>תאריך טיסה ✱</label><input type="date" id="f-date"/></div>
+        <div class="form-group"><label>שעת המראה</label><input type="time" id="f-time"/></div>
+        <div class="form-group"><label>משך טיסה (דקות) ✱</label><input type="number" id="f-dur" min="1" placeholder="45"/></div>
+        <div class="form-group"><label>אזור / מיקום</label><input type="text" id="f-location" placeholder="אזור צפוני"/></div>
+        <div class="form-group"><label>טייס</label><input type="text" id="f-pilot" placeholder="שם הטייס"/></div>
+      </div>
+      <div class="form-group">
+        <label>אירועים מיוחדים</label>
+        <div style="display:flex;gap:6px;">
+          <select id="event-pick" style="flex:1;padding:8px 10px;border:1px solid var(--border);background:var(--bg);font-family:var(--sans);font-size:13px;outline:none;"><option value="">בחר אירוע...</option></select>
+          <button class="btn btn-secondary" onclick="addEventToFlight()">הוסף</button>
+        </div>
+        <div class="chips" id="flight-events-chips"></div>
+      </div>
+      <div class="form-group"><label>הערות</label><textarea id="f-notes" placeholder="תיאור, תקלות, הארות..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-flight')">ביטול</button><button class="btn btn-primary" onclick="saveFlight()">שמור</button></div>
+  </div>
+</div>
+
+<!-- SOFTWARE MODAL -->
+<div class="modal-bg" id="modal-software">
+  <div class="modal" style="width:440px">
+    <div class="modal-header"><div class="modal-title" id="sw-modal-title">תוכנה חדשה</div><button class="modal-close" onclick="closeModal('modal-software')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="sw-edit-id"/>
+      <div class="form-group"><label>שם התוכנה ✱</label><input type="text" id="sw-name" placeholder="FlightCore OS"/></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label>גרסה</label><input type="text" id="sw-version" placeholder="2.1.0"/></div>
+        <div class="form-group"><label>קטגוריה</label>
+          <select id="sw-category"><option value="navigation">ניווט</option><option value="comms">תקשורת</option><option value="sensor">חיישנים</option><option value="security">אבטחה</option><option value="payload">עומס תועלת</option><option value="other">אחר</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>תיאור</label><textarea id="sw-desc" placeholder="תיאור קצר..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-software')">ביטול</button><button class="btn btn-primary" onclick="saveSoftware()">שמור</button></div>
+  </div>
+</div>
+
+<!-- EVENT TYPE MODAL -->
+<div class="modal-bg" id="modal-event-type">
+  <div class="modal" style="width:420px">
+    <div class="modal-header"><div class="modal-title" id="et-modal-title">הגדרת אירוע מיוחד</div><button class="modal-close" onclick="closeModal('modal-event-type')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="et-edit-id"/>
+      <div class="form-group"><label>שם האירוע ✱</label><input type="text" id="et-name" placeholder="אובדן תקשורת"/></div>
+      <div class="form-group"><label>חומרה</label>
+        <select id="et-severity"><option value="info">מידע</option><option value="warning">אזהרה</option><option value="critical">קריטי</option></select>
+      </div>
+      <div class="form-group"><label>תיאור</label><textarea id="et-desc" placeholder="תיאור האירוע..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-event-type')">ביטול</button><button class="btn btn-primary" onclick="saveEventType()">שמור</button></div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-bg" id="modal-confirm">
+  <div class="modal" style="width:340px">
+    <div class="modal-header"><div class="modal-title">אישור מחיקה</div><button class="modal-close" onclick="closeModal('modal-confirm')">✕</button></div>
+    <div class="modal-body"><p id="confirm-text" style="font-size:14px;line-height:1.7;"></p></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-confirm')">ביטול</button><button class="btn btn-danger" id="confirm-ok-btn">מחק</button></div>
+  </div>
+</div>
+
+<!-- MALFUNCTION OPEN MODAL -->
+<div class="modal-bg" id="modal-malfunction">
+  <div class="modal" style="width:520px">
+    <div class="modal-header"><div class="modal-title" id="mal-modal-title">תקלה חדשה</div><button class="modal-close" onclick="closeModal('modal-malfunction')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="mal-edit-id"/>
+      <div class="form-grid-2">
+        <div class="form-group"><label>רחפן ✱</label><select id="mal-drone"><option value="">בחר רחפן...</option></select></div>
+        <div class="form-group"><label>תאריך גילוי ✱</label><input type="date" id="mal-date"/></div>
+      </div>
+      <div class="form-group"><label>תיאור התקלה ✱</label><input type="text" id="mal-title-input" placeholder='למשל: רעידה בציר X, ירידה בעוצמת אות GPS'/></div>
+      <div class="form-group"><label>עבודה נדרשת ✱</label><textarea id="mal-work-required" placeholder="פרט את העבודה הנדרשת לתיקון..."></textarea></div>
+      <div class="form-group"><label>הערות</label><textarea id="mal-notes" placeholder="מידע נוסף..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-malfunction')">ביטול</button><button class="btn btn-primary" onclick="saveMalfunction()">שמור תקלה</button></div>
+  </div>
+</div>
+
+<!-- MALFUNCTION CLOSE MODAL -->
+<div class="modal-bg" id="modal-malfunction-close">
+  <div class="modal" style="width:500px">
+    <div class="modal-header"><div class="modal-title">סגירת תקלה</div><button class="modal-close" onclick="closeModal('modal-malfunction-close')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="mal-close-id"/>
+      <div id="mal-close-summary" style="background:var(--bg);border:1px solid var(--border);padding:12px 14px;margin-bottom:16px;font-size:13px;border-right:3px solid var(--red);"></div>
+      <div class="form-group"><label>מה בוצע ✱</label><textarea id="mal-close-action" placeholder="פרט את הפעולה שבוצעה לתיקון..."></textarea></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label>בוצע ע"י ✱</label><input type="text" id="mal-close-by" placeholder="שם הטכנאי / המבצע"/></div>
+        <div class="form-group"><label>תאריך סגירה ✱</label><input type="date" id="mal-close-date"/></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-malfunction-close')">ביטול</button><button class="btn btn-primary" style="background:var(--green);border-color:var(--green);" onclick="closeMalfunction()">✅ סגור תקלה</button></div>
+  </div>
+</div>
+
+<!-- DRONE DETAIL MODAL -->
+<div class="modal-bg" id="modal-drone-detail">
+  <div class="modal" style="width:700px;max-height:88vh;">
+    <div class="modal-header" style="padding:0;border:none;position:relative;">
+      <div id="drone-detail-header" class="detail-header-strip" style="flex:1;"></div>
+      <button class="modal-close" onclick="closeModal('modal-drone-detail')" style="position:absolute;left:16px;top:16px;color:rgba(255,255,255,.7);font-size:20px;">✕</button>
+    </div>
+    <div id="drone-detail-stats" class="detail-stats-strip"></div>
+    <div style="overflow-y:auto;max-height:calc(88vh - 160px);">
+      <div class="detail-section-title">היסטוריית טיסות ואירועים</div>
+      <div id="drone-detail-flights"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-drone-detail')">סגור</button>
+      <button class="btn btn-primary" id="drone-detail-add-flight-btn">+ הוסף טיסה</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT USER MODAL (admin) -->
+<div class="modal-bg" id="modal-user">
+  <div class="modal" style="width:460px">
+    <div class="modal-header"><div class="modal-title" id="user-modal-title">הוסף משתמש</div><button class="modal-close" onclick="closeModal('modal-user')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="user-edit-id"/>
+      <div class="form-group"><label>שם מלא ✱</label><input type="text" id="user-fullname" placeholder="ישראל ישראלי"/></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label>שם משתמש ✱</label><input type="text" id="user-username" placeholder="israel_i"/></div>
+        <div class="form-group"><label>תפקיד</label>
+          <select id="user-role">
+            <option value="user">משתמש רגיל</option>
+            <option value="admin">מנהל (Admin)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>אימייל ✱</label><input type="email" id="user-email" placeholder="israel@example.com"/></div>
+      <div class="form-group">
+        <label>סיסמא <span id="user-pass-hint" style="color:var(--text-sec);font-weight:400;">(השאר ריק לשמור הקיימת)</span></label>
+        <input type="password" id="user-pass" placeholder="סיסמא חדשה" oninput="checkPwdStrength(this.value,'user-strength')"/>
+        <div class="pwd-strength" id="user-strength"></div>
+      </div>
+      <div class="form-group"><label>סטטוס</label>
+        <select id="user-status">
+          <option value="active">פעיל</option>
+          <option value="pending">ממתין לאישור</option>
+          <option value="disabled">מושבת</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-user')">ביטול</button><button class="btn btn-primary" onclick="saveUser()">שמור</button></div>
+  </div>
+</div>
+
+<!-- NAV CALIBRATION MODAL -->
+<div class="modal-bg" id="modal-nav-entry">
+  <div class="modal" style="width:500px">
+    <div class="modal-header"><div class="modal-title" id="nav-modal-title">הוסף רשומה</div><button class="modal-close" onclick="closeModal('modal-nav-entry')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="nav-entry-drone-id"/>
+      <input type="hidden" id="nav-entry-type"/>
+      <input type="hidden" id="nav-entry-id"/>
+      <div class="form-grid-2">
+        <div class="form-group"><label>תאריך ✱</label><input type="date" id="nav-entry-date"/></div>
+        <div class="form-group" id="nav-entry-ver-group" style="display:none;"><label>גרסת תוכנה</label><input type="text" id="nav-entry-ver" placeholder="v2.3.1"/></div>
+        <div class="form-group"><label>מבצע / טכנאי</label><input type="text" id="nav-entry-operator" placeholder="שם המבצע"/></div>
+      </div>
+      <div class="form-group"><label>הערות</label><textarea id="nav-entry-notes" placeholder="הערות..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-nav-entry')">ביטול</button><button class="btn btn-primary" onclick="saveNavEntry()">שמור</button></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  GITHUB BACKEND CONFIG
+// ============================================================
+let GH_CONFIG={token:'',owner:'',repo:'',branch:'main'};
+function loadGHConfig(){try{const s=localStorage.getItem('droneops_gh_config');if(s)GH_CONFIG={...GH_CONFIG,...JSON.parse(s)};}catch(e){}}
+function saveGHConfig(cfg){GH_CONFIG={...GH_CONFIG,...cfg};localStorage.setItem('droneops_gh_config',JSON.stringify(GH_CONFIG));}
+function isGHConfigured(){return !!(GH_CONFIG.token&&GH_CONFIG.owner&&GH_CONFIG.repo);}
+
+// ============================================================
+//  GITHUB API
+// ============================================================
+const GH_API='https://api.github.com';
+async function ghRequest(method,path,body=null){
+  const opts={method,headers:{'Authorization':'token '+GH_CONFIG.token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'}};
+  if(body)opts.body=JSON.stringify(body);
+  const res=await fetch(GH_API+path,opts);
+  if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(`GitHub ${res.status}: ${err.message||res.statusText}`);}
+  return res.status===204?null:res.json();
+}
+async function ghReadFile(filename){
+  try{
+    const data=await ghRequest('GET',`/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/data/${filename}?ref=${GH_CONFIG.branch}`);
+    return{content:JSON.parse(atob(data.content.replace(/\n/g,''))),sha:data.sha};
+  }catch(e){if(e.message.includes('404'))return{content:null,sha:null};throw e;}
+}
+async function ghWriteFile(filename,content,sha=null,message=null){
+  const body={message:message||`update ${filename}`,content:btoa(unescape(encodeURIComponent(JSON.stringify(content,null,2)))),branch:GH_CONFIG.branch};
+  if(sha)body.sha=sha;
+  return ghRequest('PUT',`/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/data/${filename}`,body);
+}
+
+// ============================================================
+//  DB — IN MEMORY + GITHUB SYNC
+// ============================================================
+let currentUser=null;
+let db={drones:[],flights:[],software:[],eventTypes:[],malfunctions:[]};
+let dbSha={};
+let _droneSoftware=[];
+let _flightEvents=[];
+let _isSaving=false;
+let _pendingSave=false;
+
+const DB_FILES={drones:'drones.json',flights:'flights.json',software:'software.json',eventTypes:'events.json',malfunctions:'malfunctions.json'};
+const USERS_FILE='users.json';
+
+const DEFAULT_USERS=[
+  {id:'u-admin',username:'admin',fullname:'מנהל ראשי',email:'admin@droneops.local',password:'admin123',role:'admin',status:'active',createdAt:'2026-01-01'},
+  {id:'u-pilot',username:'pilot',fullname:'טייס ראשי',email:'pilot@droneops.local',password:'pilot123',role:'user',status:'active',createdAt:'2026-01-01'},
+];
+let _users=null;
+let _usersSha=null;
+
+async function loadUsers(){
+  if(_users)return _users;
+  if(!isGHConfigured()){_users=[...DEFAULT_USERS];return _users;}
+  try{
+    const{content,sha}=await ghReadFile(USERS_FILE);
+    _usersSha=sha;
+    if(content){
+      _users=content;
+      DEFAULT_USERS.forEach(def=>{if(!_users.find(u=>u.id===def.id))_users.unshift(def);});
+    }else{
+      _users=[...DEFAULT_USERS];
+      await ghWriteFile(USERS_FILE,_users,null,'init users');
+    }
+  }catch(e){console.warn('loadUsers',e);_users=[...DEFAULT_USERS];}
+  return _users;
+}
+async function saveUsers(users){
+  _users=users;
+  if(!isGHConfigured())return;
+  try{
+    const{sha}=await ghReadFile(USERS_FILE);
+    const res=await ghWriteFile(USERS_FILE,users,sha||_usersSha,'update users');
+    if(res?.content)_usersSha=res.content.sha;
+  }catch(e){showToast('שגיאה בשמירת משתמשים: '+e.message,'error');}
+}
+function getUsers(){return _users||DEFAULT_USERS;}
+function getUserByUsername(u){return getUsers().find(x=>x.username===u||x.email===u);}
+function getTokens(){try{return JSON.parse(localStorage.getItem('droneops_tokens')||'[]');}catch(e){return[];}}
+function saveTokens(t){localStorage.setItem('droneops_tokens',JSON.stringify(t));}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+async function loadDB(){
+  if(!isGHConfigured())return;
+  showLoadingOverlay('טוען נתונים מ-GitHub...');
+  try{
+    await Promise.all(Object.entries(DB_FILES).map(async([key,file])=>{
+      const{content,sha}=await ghReadFile(file);
+      dbSha[key]=sha;
+      if(content)db[key]=content;
+    }));
+  }catch(e){showToast('שגיאה בטעינה: '+e.message,'error');}
+  finally{hideLoadingOverlay();}
+}
+
+async function saveDB(changedKey=null){
+  if(!isGHConfigured())return;
+  const keys=changedKey?[changedKey]:Object.keys(DB_FILES);
+  if(_isSaving){_pendingSave=true;return;}
+  _isSaving=true;showSavingIndicator(true);
+  try{
+    for(const key of keys){
+      const file=DB_FILES[key];if(!file)continue;
+      const{sha}=await ghReadFile(file);
+      const res=await ghWriteFile(file,db[key],sha||dbSha[key],`update ${file}`);
+      if(res?.content)dbSha[key]=res.content.sha;
+    }
+    showToast('נשמר ✓','success');
+  }catch(e){showToast('שגיאה בשמירה: '+e.message,'error');}
+  finally{
+    _isSaving=false;showSavingIndicator(false);
+    if(_pendingSave){_pendingSave=false;saveDB();}
+  }
+}
+
+async function initGHRepo(){
+  showLoadingOverlay('מאתחל repository...');
+  try{
+    for(const[key,file] of Object.entries(DB_FILES)){
+      const{content}=await ghReadFile(file);
+      if(content===null)await ghWriteFile(file,[],null,`init ${file}`);
+    }
+    showToast('Repository מוכן!','success');
+  }catch(e){showToast('שגיאה באתחול: '+e.message,'error');}
+  finally{hideLoadingOverlay();}
+}
+
+// ============================================================
+//  UI HELPERS
+// ============================================================
+function showToast(msg,type='info'){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:24px;left:24px;padding:10px 18px;font-size:13px;font-weight:600;font-family:var(--sans);z-index:9999;transition:opacity .3s;max-width:360px;';document.body.appendChild(t);}
+  const c={success:'background:#2d6a4f;color:#fff',error:'background:#c0392b;color:#fff',info:'background:#1a1a18;color:#fff'};
+  t.setAttribute('style',t.style.cssText+(c[type]||c.info));
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._tid);t._tid=setTimeout(()=>t.style.opacity='0',3500);
+}
+function showLoadingOverlay(msg='טוען...'){
+  let o=document.getElementById('loading-overlay');
+  if(!o){
+    o=document.createElement('div');o.id='loading-overlay';
+    o.style.cssText='position:fixed;inset:0;background:rgba(26,26,24,.75);z-index:9000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;';
+    o.innerHTML='<div style="width:38px;height:38px;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:ghspin .8s linear infinite;"></div><div id="loading-msg" style="color:#fff;font-family:var(--mono);font-size:13px;letter-spacing:.05em;"></div>';
+    document.body.appendChild(o);
+    const st=document.createElement('style');st.textContent='@keyframes ghspin{to{transform:rotate(360deg)}}';document.head.appendChild(st);
+  }
+  document.getElementById('loading-msg').textContent=msg;
+  o.style.display='flex';
+}
+function hideLoadingOverlay(){const o=document.getElementById('loading-overlay');if(o)o.style.display='none';}
+function showSavingIndicator(on){
+  let el=document.getElementById('saving-indicator');
+  if(!el){el=document.createElement('div');el.id='saving-indicator';el.style.cssText='position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-family:var(--mono);font-size:11px;padding:4px 14px;z-index:500;letter-spacing:.06em;transition:opacity .3s;pointer-events:none;';el.textContent='שומר...';document.body.appendChild(el);}
+  el.style.opacity=on?'1':'0';
+}
+
+// ============================================================
+//  GITHUB CONFIG MODAL
+// ============================================================
+function showGHConfigModal(){
+  let m=document.getElementById('modal-gh-config');
+  if(!m){
+    m=document.createElement('div');m.id='modal-gh-config';m.className='modal-bg open';
+    m.innerHTML=`<div class="modal" style="width:540px;">
+      <div class="modal-header"><div class="modal-title">⚙️ הגדרת חיבור GitHub</div></div>
+      <div class="modal-body">
+        <div style="background:var(--blue-l);border:1px solid #b8cfee;padding:12px 14px;margin-bottom:18px;font-size:12px;color:var(--blue);line-height:1.6;">
+          הנתונים ישמרו ב-repository פרטי שלך ב-GitHub.<br>כל המשתמשים יעבדו מול אותו מקור מידע.
+        </div>
+        <div class="form-group">
+          <label>GitHub Personal Access Token ✱</label>
+          <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="font-family:var(--mono);"/>
+          <div style="font-size:11px;color:var(--text-sec);margin-top:5px;line-height:1.6;">
+            צור ב: <strong>GitHub → Settings → Developer settings → Personal access tokens → Fine-grained</strong><br>
+            הרשאות נדרשות: <strong>Contents → Read and write</strong>
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group"><label>שם המשתמש ב-GitHub ✱</label><input type="text" id="gh-owner" placeholder="your-username"/></div>
+          <div class="form-group"><label>שם ה-Repository ✱</label><input type="text" id="gh-repo" placeholder="droneops-data"/></div>
+        </div>
+        <div class="form-group"><label>Branch</label><input type="text" id="gh-branch" value="main"/></div>
+        <div id="gh-config-err" style="display:none;color:var(--red);font-size:12px;margin-top:8px;padding:8px;background:var(--red-l);border:1px solid #f5a89e;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-full" onclick="saveGHConfigAndInit()">📡 התחבר ואתחל</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+  } else {m.classList.add('open');}
+  if(GH_CONFIG.token)document.getElementById('gh-token').value=GH_CONFIG.token;
+  if(GH_CONFIG.owner)document.getElementById('gh-owner').value=GH_CONFIG.owner;
+  if(GH_CONFIG.repo)document.getElementById('gh-repo').value=GH_CONFIG.repo;
+  if(GH_CONFIG.branch)document.getElementById('gh-branch').value=GH_CONFIG.branch;
+}
+async function saveGHConfigAndInit(){
+  const token=document.getElementById('gh-token').value.trim();
+  const owner=document.getElementById('gh-owner').value.trim();
+  const repo=document.getElementById('gh-repo').value.trim();
+  const branch=document.getElementById('gh-branch').value.trim()||'main';
+  const errEl=document.getElementById('gh-config-err');
+  errEl.style.display='none';
+  if(!token||!owner||!repo){errEl.textContent='יש למלא את כל השדות';errEl.style.display='block';return;}
+  saveGHConfig({token,owner,repo,branch});
+  showLoadingOverlay('בודק חיבור ל-GitHub...');
+  try{
+    await ghRequest('GET',`/repos/${owner}/${repo}`);
+    document.getElementById('modal-gh-config').classList.remove('open');
+    await initGHRepo();
+    await loadDB();
+    await loadUsers();
+    refreshAll();
+  }catch(e){
+    hideLoadingOverlay();
+    errEl.textContent='שגיאה: '+e.message+'. בדוק Token, שם המשתמש והRepository.';
+    errEl.style.display='block';
+  }
+}
+
+// ============================================================
+//  AUTH
+// ============================================================
+function switchAuthTab(tabId,el){
+  document.querySelectorAll('.login-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.login-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  if(el)el.classList.add('active');
+}
+function showMsg(id,msg,type){const el=document.getElementById(id);el.textContent=msg;el.className='login-msg '+type;el.style.display='block';}
+function hideMsg(id){const el=document.getElementById(id);if(el)el.style.display='none';}
+function checkPwdStrength(pwd,barId){
+  const bar=document.getElementById(barId);
+  if(!pwd){bar.className='pwd-strength';bar.style.width='0';return;}
+  if(pwd.length<6)bar.className='pwd-strength weak';
+  else if(pwd.length<10&&!/[!@#$%^&*]/.test(pwd))bar.className='pwd-strength medium';
+  else bar.className='pwd-strength strong';
+}
+function checkUsernameAvail(){
+  const u=document.getElementById('reg-username').value.trim().toLowerCase();
+  const el=document.getElementById('reg-user-avail');
+  if(!u){el.textContent='';return;}
+  const exists=getUserByUsername(u);
+  el.textContent=exists?'❌ שם משתמש תפוס':'✅ שם משתמש פנוי';
+  el.style.color=exists?'var(--red)':'var(--green)';
+}
+
+async function doLogin(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value.trim();
+  hideMsg('lerr');
+  showLoadingOverlay('מתחבר...');
+  try{loadGHConfig();await loadUsers();}catch(e){}
+  hideLoadingOverlay();
+  const user=getUserByUsername(u);
+  if(!user||user.password!==p){showMsg('lerr','שם משתמש או סיסמא שגויים','error');return;}
+  if(user.status==='pending'){showMsg('lerr','החשבון ממתין לאישור מנהל','error');return;}
+  if(user.status==='disabled'){showMsg('lerr','החשבון מושבת. פנה למנהל','error');return;}
+  currentUser=user;
+  document.getElementById('auth-screens').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('topbar-user').innerHTML=`${user.fullname||user.username} ${user.role==='admin'?'<span class="admin-badge">ADMIN</span>':''}`;
+  document.getElementById('nav-admin').style.display=user.role==='admin'?'flex':'none';
+  if(!isGHConfigured()){showGHConfigModal();}
+  else{await loadDB();refreshAll();}
+}
+function doLogout(){
+  currentUser=null;db={drones:[],flights:[],software:[],eventTypes:[],malfunctions:[]};dbSha={};_users=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-screens').style.display='block';
+  document.getElementById('lu').value='';document.getElementById('lp').value='';
+}
+
+async function doRegister(){
+  hideMsg('reg-err');hideMsg('reg-ok');
+  const fullname=document.getElementById('reg-fullname').value.trim();
+  const username=document.getElementById('reg-username').value.trim().toLowerCase();
+  const email=document.getElementById('reg-email').value.trim().toLowerCase();
+  const pass=document.getElementById('reg-pass').value;
+  const pass2=document.getElementById('reg-pass2').value;
+  if(!fullname||!username||!email||!pass){showMsg('reg-err','יש למלא את כל השדות','error');return;}
+  if(pass.length<6){showMsg('reg-err','הסיסמא חייבת להכיל לפחות 6 תווים','error');return;}
+  if(pass!==pass2){showMsg('reg-err','הסיסמאות אינן תואמות','error');return;}
+  if(!/\S+@\S+\.\S+/.test(email)){showMsg('reg-err','כתובת אימייל אינה תקינה','error');return;}
+  const users=await loadUsers();
+  if(users.find(u=>u.username===username)){showMsg('reg-err','שם המשתמש כבר קיים','error');return;}
+  if(users.find(u=>u.email===email)){showMsg('reg-err','כתובת האימייל כבר רשומה','error');return;}
+  users.push({id:uid(),username,fullname,email,password:pass,role:'user',status:'pending',createdAt:new Date().toISOString().slice(0,10)});
+  await saveUsers(users);
+  ['reg-fullname','reg-username','reg-email','reg-pass','reg-pass2'].forEach(id=>document.getElementById(id).value='');
+  showMsg('reg-ok','✅ הבקשה נשלחה! המנהל יאשר את החשבון בקרוב.','success');
+}
+
+async function doForgot(){
+  hideMsg('forgot-err');hideMsg('forgot-ok');
+  document.getElementById('forgot-token-area').hidden=true;
+  const email=document.getElementById('forgot-email').value.trim().toLowerCase();
+  if(!email){showMsg('forgot-err','יש להזין כתובת אימייל','error');return;}
+  const users=await loadUsers();
+  const user=users.find(u=>u.email===email);
+  if(!user){showMsg('forgot-err','לא נמצא חשבון עם כתובת אימייל זו','error');return;}
+  const token=uid()+uid();
+  const tokens=getTokens();
+  tokens.push({token,userId:user.id,createdAt:Date.now(),used:false});
+  saveTokens(tokens);
+  document.getElementById('forgot-token-val').textContent=token;
+  document.getElementById('forgot-token-area').hidden=false;
+  showMsg('forgot-ok',`✅ קישור איפוס נשלח ל-${email} (סימולציה)`,'success');
+}
+async function doResetPassword(){
+  hideMsg('reset-err');hideMsg('reset-ok');
+  const token=document.getElementById('reset-token-input').value.trim();
+  const newPass=document.getElementById('reset-new-pass').value;
+  if(!token||!newPass){showMsg('reset-err','יש להזין טוקן וסיסמא חדשה','error');return;}
+  if(newPass.length<6){showMsg('reset-err','הסיסמא חייבת להכיל לפחות 6 תווים','error');return;}
+  const tokens=getTokens();
+  const rec=tokens.find(t=>t.token===token&&!t.used);
+  if(!rec||Date.now()-rec.createdAt>3600000){showMsg('reset-err','טוקן לא תקין או פג תוקף','error');return;}
+  const users=await loadUsers();
+  const user=users.find(u=>u.id===rec.userId);
+  if(!user){showMsg('reset-err','משתמש לא נמצא','error');return;}
+  user.password=newPass;
+  await saveUsers(users);
+  rec.used=true;saveTokens(tokens);
+  showMsg('reset-ok','✅ הסיסמא שונתה בהצלחה!','success');
+  document.getElementById('reset-token-input').value='';
+  document.getElementById('reset-new-pass').value='';
+}
+
+// NAV
+function showPage(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(el)el.classList.add('active');
+  if(name==='dashboard')renderDashboard();
+  else if(name==='drones')renderDrones();
+  else if(name==='flights')renderFlights();
+  else if(name==='software')renderSoftware();
+  else if(name==='events'){renderEventTypes();renderEventOccurrences();}
+  else if(name==='navigation')renderNavigationPage();
+  else if(name==='malfunctions')renderMalfunctions();
+  else if(name==='admin')renderAdminUsers();
+}
+function refreshAll(){renderDashboard();renderDrones();renderFlights();renderSoftware();renderEventTypes();renderEventOccurrences();renderNavigationPage();renderMalfunctions();if(currentUser&&currentUser.role==='admin')renderAdminUsers();}
+
+// ===== ADMIN USERS =====
+function renderAdminUsers(){
+  const tbody=document.getElementById('users-tbody');
+  const users=getUsers();
+  tbody.innerHTML=users.map(u=>`<tr>
+    <td><span style="font-weight:600;font-family:var(--mono);">${u.username}</span></td>
+    <td>${u.fullname||'—'}</td>
+    <td><a href="mailto:${u.email}" style="color:var(--blue);font-size:12px;">${u.email}</a></td>
+    <td>${u.role==='admin'?'<span class="role-badge-admin">ADMIN</span>':'<span class="role-badge-user">USER</span>'}</td>
+    <td><span class="user-status-${u.status}">${{active:'✅ פעיל',pending:'⏳ ממתין',disabled:'🚫 מושבת'}[u.status]||u.status}</span></td>
+    <td><span style="font-family:var(--mono);font-size:11px;color:var(--text-sec);">${u.createdAt||'—'}</span></td>
+    <td><div class="actions">
+      ${u.status==='pending'?`<button class="btn btn-secondary btn-sm" onclick="approveUser('${u.id}')">✅ אשר</button>`:''}
+      ${u.status==='active'&&u.id!=='u-admin'?`<button class="btn btn-secondary btn-sm" onclick="toggleUserStatus('${u.id}','disabled')">השבת</button>`:''}
+      ${u.status==='disabled'?`<button class="btn btn-secondary btn-sm" onclick="toggleUserStatus('${u.id}','active')">הפעל</button>`:''}
+      <button class="btn btn-secondary btn-sm" onclick="openEditUserModal('${u.id}')">עריכה</button>
+      ${u.id!=='u-admin'?`<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">מחק</button>`:''}
+    </div></td>
+  </tr>`).join('');
+}
+
+async function approveUser(userId){
+  const users=getUsers();
+  const u=users.find(x=>x.id===userId);
+  if(u){u.status='active';await saveUsers(users);renderAdminUsers();}
+}
+async function toggleUserStatus(userId,newStatus){
+  const users=getUsers();
+  const u=users.find(x=>x.id===userId);
+  if(u){u.status=newStatus;await saveUsers(users);renderAdminUsers();}
+}
+function deleteUser(userId){
+  confirmDel('האם למחוק משתמש זה?',async()=>{
+    const users=getUsers().filter(u=>u.id!==userId);
+    await saveUsers(users);renderAdminUsers();
+  });
+}
+
+function openAddUserModal(){
+  document.getElementById('user-edit-id').value='';
+  document.getElementById('user-fullname').value='';
+  document.getElementById('user-username').value='';
+  document.getElementById('user-email').value='';
+  document.getElementById('user-pass').value='';
+  document.getElementById('user-role').value='user';
+  document.getElementById('user-status').value='active';
+  document.getElementById('user-modal-title').textContent='הוסף משתמש';
+  document.getElementById('user-pass-hint').textContent='✱';
+  document.getElementById('user-strength').className='pwd-strength';
+  openModal('modal-user');
+}
+function openEditUserModal(userId){
+  const u=getUsers().find(x=>x.id===userId);if(!u)return;
+  document.getElementById('user-edit-id').value=u.id;
+  document.getElementById('user-fullname').value=u.fullname||'';
+  document.getElementById('user-username').value=u.username;
+  document.getElementById('user-email').value=u.email;
+  document.getElementById('user-pass').value='';
+  document.getElementById('user-role').value=u.role||'user';
+  document.getElementById('user-status').value=u.status||'active';
+  document.getElementById('user-modal-title').textContent=`עריכת משתמש — ${u.username}`;
+  document.getElementById('user-pass-hint').textContent='(השאר ריק לשמור הקיימת)';
+  document.getElementById('user-strength').className='pwd-strength';
+  openModal('modal-user');
+}
+async function saveUser(){
+  const editId=document.getElementById('user-edit-id').value;
+  const fullname=document.getElementById('user-fullname').value.trim();
+  const username=document.getElementById('user-username').value.trim().toLowerCase();
+  const email=document.getElementById('user-email').value.trim().toLowerCase();
+  const pass=document.getElementById('user-pass').value;
+  const role=document.getElementById('user-role').value;
+  const status=document.getElementById('user-status').value;
+  if(!fullname||!username||!email){alert('יש למלא שם, שם משתמש ואימייל');return;}
+  if(!/\S+@\S+\.\S+/.test(email)){alert('כתובת אימייל אינה תקינה');return;}
+  const users=getUsers();
+  if(editId){
+    const u=users.find(x=>x.id===editId);if(!u)return;
+    if(users.find(x=>x.id!==editId&&x.username===username)){alert('שם משתמש כבר קיים');return;}
+    if(users.find(x=>x.id!==editId&&x.email===email)){alert('אימייל כבר קיים');return;}
+    u.fullname=fullname;u.username=username;u.email=email;u.role=role;u.status=status;
+    if(pass){if(pass.length<6){alert('סיסמא חייבת להכיל לפחות 6 תווים');return;}u.password=pass;}
+  }else{
+    if(!pass||pass.length<6){alert('יש להזין סיסמא של לפחות 6 תווים');return;}
+    if(users.find(x=>x.username===username)){alert('שם משתמש כבר קיים');return;}
+    if(users.find(x=>x.email===email)){alert('אימייל כבר קיים');return;}
+    users.push({id:uid(),username,fullname,email,password:pass,role,status,createdAt:new Date().toISOString().slice(0,10)});
+  }
+  await saveUsers(users);closeModal('modal-user');renderAdminUsers();
+}
+
+// HELPERS
+function getDrone(id){return db.drones.find(d=>d.id===id);}
+function getSoftware(id){return db.software.find(s=>s.id===id);}
+function getEventType(id){return db.eventTypes.find(e=>e.id===id);}
+function getDroneFlights(droneId){return db.flights.filter(f=>f.droneId===droneId);}
+function fmtDuration(min){min=parseInt(min)||0;if(min<60)return min+'ד\'';return Math.floor(min/60)+'ש\' '+(min%60?min%60+'ד\'':'');}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function confirmDel(text,cb){document.getElementById('confirm-text').textContent=text;const btn=document.getElementById('confirm-ok-btn');btn.onclick=()=>{cb();closeModal('modal-confirm');};openModal('modal-confirm');}
+
+function statusBadge(s){
+  const m={active:['badge-green','פעיל'],idle:['badge-yellow','סרק'],maintenance:['badge-blue','תחזוקה'],offline:['badge-red','לא פעיל']};
+  const [cls,label]=m[s]||['badge-gray',s];
+  return`<span class="badge ${cls}"><span class="status-dot ${s}"></span>${label}</span>`;
+}
+function severityBadge(s){
+  const m={info:['badge-blue','מידע'],warning:['badge-yellow','אזהרה'],critical:['badge-red','קריטי']};
+  const [cls,label]=m[s]||['badge-gray',s];
+  return`<span class="badge ${cls}">${label}</span>`;
+}
+function catLabel(c){return{navigation:'ניווט',comms:'תקשורת',sensor:'חיישנים',security:'אבטחה',payload:'עומס תועלת',other:'אחר'}[c]||c;}
+
+// DASHBOARD
+function renderDashboard(){
+  const totalMin=db.flights.reduce((a,f)=>a+(parseInt(f.duration)||0),0);
+  const totalEvents=db.flights.reduce((a,f)=>a+(f.events||[]).length,0);
+  document.getElementById('st-drones').textContent=db.drones.length;
+  document.getElementById('st-active').textContent=db.drones.filter(d=>d.status==='active').length;
+  document.getElementById('st-flights').textContent=db.flights.length;
+  document.getElementById('st-hours').textContent=Math.round(totalMin/60*10)/10;
+  document.getElementById('st-events').textContent=totalEvents;
+
+  const recentFlights=[...db.flights].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  const flEl=document.getElementById('dash-flights');
+  if(!recentFlights.length){flEl.innerHTML='<div class="empty-state"><div class="ico">✈</div>אין טיסות עדיין</div>';}
+  else{flEl.innerHTML=recentFlights.map(f=>{
+    const drone=getDrone(f.droneId);
+    return`<div class="flight-item" style="margin-bottom:4px;">
+      <div class="flight-header">
+        <span class="tail-num">${drone?drone.tail:'?'}</span>
+        <span class="flight-date">${f.date}</span>
+        <span class="flight-dur">⏱ ${fmtDuration(f.duration)}</span>
+      </div>
+      ${(f.events||[]).length?`<div class="flight-events">${f.events.map(eid=>{const et=getEventType(eid);return`<span class="event-tag ${et?et.severity:''}">⚑ ${et?et.name:eid}</span>`;}).join('')}</div>`:''}
+    </div>`;}).join('');}
+
+  const allEvts=[];
+  db.flights.forEach(f=>(f.events||[]).forEach(eid=>{const et=getEventType(eid);const drone=getDrone(f.droneId);allEvts.push({name:et?et.name:eid,severity:et?et.severity:'info',date:f.date,tail:drone?drone.tail:'?'});}));
+  allEvts.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const evEl=document.getElementById('dash-events');
+  if(!allEvts.length){evEl.innerHTML='<div class="empty-state"><div class="ico">⚑</div>אין אירועים</div>';}
+  else{evEl.innerHTML=allEvts.slice(0,6).map(e=>`<div class="flight-item" style="display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:4px;">
+    <span class="tail-num">${e.tail}</span>
+    ${severityBadge(e.severity)}
+    <span style="font-weight:600;font-size:13px;">${e.name}</span>
+    <span style="margin-right:auto;font-family:var(--mono);font-size:11px;color:var(--text-sec);">${e.date}</span>
+  </div>`).join('');}
+}
+
+// DRONES
+function renderDrones(search=''){
+  const tbody=document.getElementById('drones-tbody');
+  let list=db.drones;
+  if(search)list=list.filter(d=>(d.tail+d.name+d.model).toLowerCase().includes(search.toLowerCase()));
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="ico">◎</div>${search?'לא נמצאו תוצאות':'אין רחפנים. לחץ "+ רחפן חדש".'}</div></td></tr>`;return;}
+  tbody.innerHTML=list.map(d=>{
+    const fls=getDroneFlights(d.id);
+    const totalMin=fls.reduce((a,f)=>a+(parseInt(f.duration)||0),0);
+    const evCount=fls.reduce((a,f)=>a+(f.events||[]).length,0);
+    const openMals=(db.malfunctions||[]).filter(m=>m.droneId===d.id&&m.status==='open').length;
+    return`<tr>
+      <td><span class="tail-num" style="cursor:pointer;" onclick="openDroneDetail('${d.id}')" title="לחץ לצפייה בטיסות ואירועים">${d.tail}</span></td>
+      <td><span style="font-weight:600;">${d.name||'—'}</span></td>
+      <td><span style="color:var(--text-sec);">${d.model||'—'}</span></td>
+      <td>${statusBadge(d.status)}</td>
+      <td><span style="font-size:12px;color:var(--text-sec);">${(d.software||[]).length?`${(d.software||[]).length} תוכנות`:'—'}</span></td>
+      <td><span style="font-family:var(--mono);font-size:12px;">${fls.length}</span></td>
+      <td><span style="font-family:var(--mono);font-size:12px;">${fmtDuration(totalMin)}</span></td>
+      <td>${evCount?`<span class="badge badge-yellow">⚑ ${evCount}</span>`:'<span style="color:var(--text-sec);font-size:12px;">—</span>'}</td>
+      <td>${openMals?`<span class="badge-open">🔧 ${openMals} פתוחות</span>`:'<span style="color:var(--text-sec);font-size:12px;">—</span>'}</td>
+      <td><div class="actions">
+        <button class="btn btn-secondary btn-sm" onclick="openDroneModal('${d.id}')">עריכה</button>
+        <button class="btn btn-secondary btn-sm" onclick="openFlightModal(null,'${d.id}')">+ טיסה</button>
+        <button class="btn btn-secondary btn-sm" onclick="goToNav('${d.id}')">🧭 ניווט</button>
+        <button class="btn btn-secondary btn-sm" onclick="openMalfunctionModal('${d.id}')">🔧 תקלה</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteDrone('${d.id}')">מחק</button>
+      </div></td>
+    </tr>`;}).join('');
+}
+
+function openDroneModal(droneId){
+  _droneSoftware=[];
+  ['drone-edit-id','d-tail','d-name','d-model','d-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('d-status').value='active';
+  document.getElementById('drone-modal-title').textContent='רחפן חדש';
+  populateSwPick();
+  if(droneId){
+    const d=getDrone(droneId);if(!d)return;
+    document.getElementById('drone-modal-title').textContent=`עריכת רחפן — ${d.tail}`;
+    document.getElementById('drone-edit-id').value=d.id;
+    document.getElementById('d-tail').value=d.tail;
+    document.getElementById('d-name').value=d.name||'';
+    document.getElementById('d-model').value=d.model||'';
+    document.getElementById('d-status').value=d.status||'active';
+    document.getElementById('d-notes').value=d.notes||'';
+    _droneSoftware=[...(d.software||[])];
+  }
+  renderDroneSwList();openModal('modal-drone');
+}
+function populateSwPick(){const sel=document.getElementById('sw-pick');sel.innerHTML='<option value="">בחר תוכנה...</option>'+db.software.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');}
+function renderDroneSwList(){const el=document.getElementById('drone-sw-list');if(!_droneSoftware.length){el.innerHTML='<div style="font-size:12px;color:var(--text-sec);padding:4px 0;">אין תוכנות מותקנות</div>';return;}el.innerHTML=_droneSoftware.map((sw,i)=>{const s=getSoftware(sw.swId);return`<div class="sw-item"><span class="sw-item-name">${s?s.name:sw.swId}</span><span class="sw-item-ver">v${sw.version||'—'}</span><button class="btn btn-danger btn-sm btn-icon" onclick="removeDroneSw(${i})">✕</button></div>`;}).join('');}
+function addSwToDrone(){const swId=document.getElementById('sw-pick').value;const ver=document.getElementById('sw-ver-pick').value.trim();if(!swId)return;if(_droneSoftware.find(x=>x.swId===swId)){alert('תוכנה זו כבר קיימת');return;}_droneSoftware.push({swId,version:ver});document.getElementById('sw-pick').value='';document.getElementById('sw-ver-pick').value='';renderDroneSwList();}
+function removeDroneSw(i){_droneSoftware.splice(i,1);renderDroneSwList();}
+function saveDrone(){
+  const tail=document.getElementById('d-tail').value.trim();
+  if(!tail){alert('יש להזין מספר זנב');return;}
+  const editId=document.getElementById('drone-edit-id').value;
+  if(db.drones.find(d=>d.tail===tail&&d.id!==editId)){alert('מספר זנב זה כבר קיים');return;}
+  const data={tail,name:document.getElementById('d-name').value.trim(),model:document.getElementById('d-model').value.trim(),status:document.getElementById('d-status').value,notes:document.getElementById('d-notes').value.trim(),software:[..._droneSoftware]};
+  if(editId){Object.assign(getDrone(editId),data);}else{db.drones.push({id:uid(),...data});}
+  saveDB();closeModal('modal-drone');refreshAll();
+}
+function deleteDrone(id){confirmDel('האם למחוק רחפן זה? הטיסות המשויכות יימחקו.',()=>{db.drones=db.drones.filter(d=>d.id!==id);db.flights=db.flights.filter(f=>f.droneId!==id);saveDB();refreshAll();});}
+
+// FLIGHTS
+function renderFlights(){
+  const searchEl=document.getElementById('fsearch');
+  const filterEl=document.getElementById('ffilter');
+  if(!searchEl||!filterEl)return; // page not active — skip
+  const search=searchEl.value.toLowerCase();
+  const filterDrone=filterEl.value;
+  const fsel=filterEl; const curVal=fsel.value;
+  fsel.innerHTML='<option value="">כל הרחפנים</option>'+db.drones.map(d=>`<option value="${d.id}" ${d.id===curVal?'selected':''}>[${d.tail}] ${d.name||''}</option>`).join('');
+  let list=[...db.flights].sort((a,b)=>new Date(b.date)-new Date(a.date)||b.time?.localeCompare(a.time||'')||0);
+  if(filterDrone)list=list.filter(f=>f.droneId===filterDrone);
+  if(search)list=list.filter(f=>{const d=getDrone(f.droneId);return(d&&(d.tail+d.name).toLowerCase().includes(search))||(f.notes||'').toLowerCase().includes(search)||(f.location||'').toLowerCase().includes(search)||(f.pilot||'').toLowerCase().includes(search);});
+  const el=document.getElementById('flights-list');
+  if(!list.length){el.innerHTML='<div class="empty-state"><div class="ico">✈</div>אין טיסות מתועדות</div>';return;}
+  el.innerHTML=list.map(f=>{
+    const drone=getDrone(f.droneId);
+    return`<div class="flight-item">
+      <div class="flight-header" style="justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span class="tail-num">${drone?drone.tail:'?'}</span>
+          ${drone&&drone.name?`<span style="font-weight:600;">${drone.name}</span>`:''}
+          <span class="flight-date">${f.date}${f.time?' &nbsp;·&nbsp; '+f.time:''}</span>
+          <span class="flight-dur">⏱ ${fmtDuration(f.duration)}</span>
+          ${f.location?`<span style="font-size:12px;color:var(--text-sec);">📍 ${f.location}</span>`:''}
+          ${f.pilot?`<span style="font-size:12px;color:var(--text-sec);">👤 ${f.pilot}</span>`:''}
+        </div>
+        <div class="actions">
+          <button class="btn btn-secondary btn-sm" onclick="openFlightModal('${f.id}')">עריכה</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteFlight('${f.id}')">מחק</button>
+        </div>
+      </div>
+      ${(f.events||[]).length?`<div class="flight-events">${f.events.map(eid=>{const et=getEventType(eid);const sev=et?et.severity:'warning';return`<span class="event-tag ${sev}">⚑ ${et?et.name:eid}</span>`;}).join('')}</div>`:''}
+      ${f.notes?`<div class="flight-notes">${f.notes}</div>`:''}
+    </div>`;}).join('');
+}
+
+function openFlightModal(flightId,presetDroneId){
+  _flightEvents=[];
+  ['flight-edit-id','f-time','f-location','f-pilot','f-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('f-dur').value='';
+  document.getElementById('flight-modal-title').textContent='רישום טיסה';
+  const dSel=document.getElementById('f-drone');
+  dSel.innerHTML='<option value="">בחר רחפן...</option>'+db.drones.map(d=>`<option value="${d.id}">[${d.tail}] ${d.name||''}</option>`).join('');
+  if(presetDroneId)dSel.value=presetDroneId;
+  const eSel=document.getElementById('event-pick');
+  eSel.innerHTML='<option value="">בחר אירוע...</option>'+db.eventTypes.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  if(flightId){
+    const f=db.flights.find(x=>x.id===flightId);if(!f)return;
+    document.getElementById('flight-modal-title').textContent='עריכת טיסה';
+    document.getElementById('flight-edit-id').value=f.id;
+    document.getElementById('f-drone').value=f.droneId;
+    document.getElementById('f-date').value=f.date;
+    document.getElementById('f-time').value=f.time||'';
+    document.getElementById('f-dur').value=f.duration;
+    document.getElementById('f-location').value=f.location||'';
+    document.getElementById('f-pilot').value=f.pilot||'';
+    document.getElementById('f-notes').value=f.notes||'';
+    _flightEvents=[...(f.events||[])];
+  }
+  renderFlightEventChips();openModal('modal-flight');
+}
+function addEventToFlight(){const eid=document.getElementById('event-pick').value;if(!eid)return;_flightEvents.push(eid);document.getElementById('event-pick').value='';renderFlightEventChips();}
+function renderFlightEventChips(){const el=document.getElementById('flight-events-chips');el.innerHTML=_flightEvents.map((eid,i)=>{const et=getEventType(eid);return`<div class="chip">${et?et.name:eid}<button class="rm" onclick="removeFlightEvent(${i})">✕</button></div>`;}).join('');}
+function removeFlightEvent(i){_flightEvents.splice(i,1);renderFlightEventChips();}
+function saveFlight(){
+  const droneId=document.getElementById('f-drone').value;
+  const date=document.getElementById('f-date').value;
+  const dur=document.getElementById('f-dur').value;
+  if(!droneId){alert('יש לבחור רחפן');return;}
+  if(!date){alert('יש להזין תאריך');return;}
+  if(!dur||parseInt(dur)<1){alert('יש להזין משך טיסה תקין');return;}
+  const editId=document.getElementById('flight-edit-id').value;
+  const data={droneId,date,time:document.getElementById('f-time').value,duration:parseInt(dur),location:document.getElementById('f-location').value.trim(),pilot:document.getElementById('f-pilot').value.trim(),notes:document.getElementById('f-notes').value.trim(),events:[..._flightEvents]};
+  if(editId){Object.assign(db.flights.find(f=>f.id===editId),data);}else{db.flights.push({id:uid(),...data});}
+  saveDB();closeModal('modal-flight');refreshAll();
+}
+function deleteFlight(id){confirmDel('האם למחוק טיסה זו?',()=>{db.flights=db.flights.filter(f=>f.id!==id);saveDB();refreshAll();});}
+
+// SOFTWARE
+function renderSoftware(){
+  const tbody=document.getElementById('software-tbody');
+  if(!db.software.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="ico">◧</div>אין תוכנות</div></td></tr>';return;}
+  tbody.innerHTML=db.software.map(s=>{
+    const usedBy=db.drones.filter(d=>(d.software||[]).find(sw=>sw.swId===s.id)).map(d=>`<span class="tail-num" style="font-size:10px;margin-left:3px;">${d.tail}</span>`).join('');
+    return`<tr><td><span style="font-weight:600;">${s.name}</span>${s.desc?`<div style="font-size:11px;color:var(--text-sec);margin-top:2px;">${s.desc}</div>`:''}</td><td><span style="font-family:var(--mono);font-size:12px;">v${s.version||'—'}</span></td><td><span class="badge badge-blue">${catLabel(s.category)}</span></td><td>${usedBy||'<span style="color:var(--text-sec);font-size:12px;">—</span>'}</td><td><div class="actions"><button class="btn btn-secondary btn-sm" onclick="openSoftwareModal('${s.id}')">עריכה</button><button class="btn btn-danger btn-sm" onclick="deleteSoftware('${s.id}')">מחק</button></div></td></tr>`;}).join('');
+}
+function openSoftwareModal(swId){
+  ['sw-edit-id','sw-name','sw-version','sw-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('sw-category').value='navigation';
+  document.getElementById('sw-modal-title').textContent='תוכנה חדשה';
+  if(swId){const s=getSoftware(swId);if(!s)return;document.getElementById('sw-modal-title').textContent='עריכת תוכנה';document.getElementById('sw-edit-id').value=s.id;document.getElementById('sw-name').value=s.name;document.getElementById('sw-version').value=s.version||'';document.getElementById('sw-category').value=s.category||'other';document.getElementById('sw-desc').value=s.desc||'';}
+  openModal('modal-software');
+}
+function saveSoftware(){const name=document.getElementById('sw-name').value.trim();if(!name){alert('יש להזין שם');return;}const editId=document.getElementById('sw-edit-id').value;const data={name,version:document.getElementById('sw-version').value.trim(),category:document.getElementById('sw-category').value,desc:document.getElementById('sw-desc').value.trim()};if(editId){Object.assign(getSoftware(editId),data);}else{db.software.push({id:uid(),...data});}saveDB();closeModal('modal-software');refreshAll();}
+function deleteSoftware(id){confirmDel('האם למחוק תוכנה זו?',()=>{db.software=db.software.filter(s=>s.id!==id);db.drones.forEach(d=>{d.software=(d.software||[]).filter(sw=>sw.swId!==id);});saveDB();refreshAll();});}
+
+// EVENT TYPES
+function renderEventTypes(){
+  const tbody=document.getElementById('event-types-tbody');
+  if(!db.eventTypes.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="ico">⚑</div>אין אירועים מוגדרים</div></td></tr>';return;}
+  tbody.innerHTML=db.eventTypes.map(e=>{
+    const usage=db.flights.reduce((a,f)=>a+(f.events||[]).filter(eid=>eid===e.id).length,0);
+    return`<tr><td><span style="font-weight:600;">${e.name}</span></td><td>${severityBadge(e.severity)}</td><td><span style="font-size:12px;color:var(--text-sec);">${e.desc||'—'}</span></td><td><span style="font-family:var(--mono);font-size:12px;">${usage||'—'}</span></td><td><div class="actions"><button class="btn btn-secondary btn-sm" onclick="openEventTypeModal('${e.id}')">עריכה</button><button class="btn btn-danger btn-sm" onclick="deleteEventType('${e.id}')">מחק</button></div></td></tr>`;}).join('');
+  renderEventOccurrences();
+}
+
+function renderEventOccurrences(){
+  // populate filters
+  const dSel=document.getElementById('evt-filter-drone');
+  const tSel=document.getElementById('evt-filter-type');
+  if(!dSel||!tSel)return;
+  const curDrone=dSel.value, curType=tSel.value;
+  dSel.innerHTML='<option value="">כל הרחפנים</option>'+db.drones.map(d=>`<option value="${d.id}" ${d.id===curDrone?'selected':''}>[${d.tail}] ${d.name||''}</option>`).join('');
+  tSel.innerHTML='<option value="">כל סוגי האירועים</option>'+db.eventTypes.map(e=>`<option value="${e.id}" ${e.id===curType?'selected':''}>${e.name}</option>`).join('');
+
+  // build flat list of all occurrences
+  const rows=[];
+  db.flights.forEach(f=>{
+    const drone=getDrone(f.droneId);
+    (f.events||[]).forEach(eid=>{
+      const et=getEventType(eid);
+      rows.push({droneId:f.droneId, tail:drone?drone.tail:'?', droneName:drone?drone.name||'':'', eventId:eid, eventName:et?et.name:eid, severity:et?et.severity:'warning', date:f.date, pilot:f.pilot||'—'});
+    });
+  });
+
+  // filter
+  let filtered=rows;
+  if(curDrone) filtered=filtered.filter(r=>r.droneId===curDrone);
+  if(curType)  filtered=filtered.filter(r=>r.eventId===curType);
+  filtered.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  const tbody=document.getElementById('event-occurrences-tbody');
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="ico">⚑</div>אין אירועים${curDrone||curType?' בסינון הנוכחי':''}</div></td></tr>`;return;}
+  tbody.innerHTML=filtered.map(r=>`<tr>
+    <td><span class="tail-num">${r.tail}</span></td>
+    <td><span style="font-weight:600;font-size:13px;">${r.droneName||'—'}</span></td>
+    <td><span style="font-weight:600;">⚑ ${r.eventName}</span></td>
+    <td>${severityBadge(r.severity)}</td>
+    <td><span style="font-family:var(--mono);font-size:12px;">${r.date}</span></td>
+    <td><span style="font-size:12px;color:var(--text-sec);">${r.pilot}</span></td>
+  </tr>`).join('');
+}
+function openEventTypeModal(etId){
+  ['et-edit-id','et-name','et-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('et-severity').value='warning';
+  document.getElementById('et-modal-title').textContent='הגדרת אירוע מיוחד';
+  if(etId){const e=getEventType(etId);if(!e)return;document.getElementById('et-modal-title').textContent='עריכת אירוע';document.getElementById('et-edit-id').value=e.id;document.getElementById('et-name').value=e.name;document.getElementById('et-severity').value=e.severity||'warning';document.getElementById('et-desc').value=e.desc||'';}
+  openModal('modal-event-type');
+}
+function saveEventType(){const name=document.getElementById('et-name').value.trim();if(!name){alert('יש להזין שם אירוע');return;}const editId=document.getElementById('et-edit-id').value;const data={name,severity:document.getElementById('et-severity').value,desc:document.getElementById('et-desc').value.trim()};if(editId){Object.assign(getEventType(editId),data);}else{db.eventTypes.push({id:uid(),...data});}saveDB();closeModal('modal-event-type');refreshAll();}
+function deleteEventType(id){confirmDel('האם למחוק אירוע זה? הוא יוסר מכל הטיסות.',()=>{db.eventTypes=db.eventTypes.filter(e=>e.id!==id);db.flights.forEach(f=>{f.events=(f.events||[]).filter(eid=>eid!==id);});saveDB();refreshAll();});}
+
+// NAVIGATION
+const NAV_TYPES = [
+  {key:'magneto', label:'כיול מגנומטר', icon:'🧲', hasVersion:false},
+  {key:'doppler', label:'כיול דופלר', icon:'📡', hasVersion:false},
+  {key:'navFlight', label:'הקלטת טיסת ניווט', icon:'🛫', hasVersion:false},
+  {key:'navCore', label:'ליבת ניווט מנווטת', icon:'⚙️', hasVersion:true},
+];
+
+function goToNav(droneId){
+  // Switch to nav page and select drone
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-navigation').classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{if(n.textContent.includes('ניווט'))n.classList.add('active');});
+  renderNavigationPage(droneId);
+}
+
+function renderNavigationPage(presetDroneId){
+  // populate drone select
+  const sel=document.getElementById('nav-drone-select');
+  const curVal=presetDroneId||sel.value;
+  sel.innerHTML='<option value="">בחר רחפן...</option>'+db.drones.map(d=>`<option value="${d.id}" ${d.id===curVal?'selected':''}>[${d.tail}] ${d.name||''}</option>`).join('');
+  if(presetDroneId)sel.value=presetDroneId;
+  const droneId=sel.value;
+  const content=document.getElementById('nav-page-content');
+  if(!droneId){content.innerHTML='<div class="empty-state"><div class="ico">🧭</div>בחר רחפן לצפייה ועריכת נתוני ניווט</div>';return;}
+  const drone=getDrone(droneId);
+  if(!drone){content.innerHTML='';return;}
+  const nav=drone.navigation||{};
+  // summary row
+  let summaryHTML='<div class="nav-summary-row">';
+  NAV_TYPES.forEach(t=>{
+    const hist=(nav[t.key]||[]);
+    const last=hist.length?[...hist].sort((a,b)=>new Date(b.date)-new Date(a.date))[0]:null;
+    summaryHTML+=`<div class="nav-summary-box">
+      <div class="nav-summary-label">${t.icon} ${t.label}</div>
+      <div class="nav-summary-val">${last?last.date:'—'}</div>
+      <div class="nav-summary-meta">${last?`${hist.length} רשומות`:'טרם בוצע'}</div>
+    </div>`;
+  });
+  summaryHTML+='</div>';
+  // cards per type
+  let cardsHTML='';
+  NAV_TYPES.forEach(t=>{
+    const hist=[...(nav[t.key]||[])].sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const last=hist[0];
+    cardsHTML+=`<div class="nav-card">
+      <div class="nav-card-header">
+        <div class="nav-card-title"><span class="nav-card-icon">${t.icon}</span>${t.label}</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          ${last?`<span class="nav-card-last">אחרון: ${last.date}</span>`:'<span class="nav-card-last" style="color:var(--red);">טרם בוצע</span>'}
+          <button class="btn btn-primary btn-sm" onclick="openNavEntry('${droneId}','${t.key}')">+ הוסף</button>
+        </div>
+      </div>
+      <div class="nav-card-body">
+        ${hist.length===0?`<div class="empty-state" style="padding:20px;">אין רשומות עדיין</div>`:''}
+        ${hist.map((r,i)=>`
+          <div class="nav-hist-item">
+            <span class="nav-hist-date">${r.date}</span>
+            <span class="nav-hist-notes">${r.operator?`👤 ${r.operator}`:''} ${r.notes||''}</span>
+            ${t.hasVersion&&r.version?`<span class="nav-hist-ver">v${r.version}</span>`:'<span></span>'}
+            <button class="btn btn-danger btn-sm btn-icon" onclick="deleteNavEntry('${droneId}','${t.key}',${i})">✕</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  });
+  content.innerHTML=summaryHTML+cardsHTML;
+}
+
+function openNavEntry(droneId,type){
+  const t=NAV_TYPES.find(x=>x.key===type);
+  document.getElementById('nav-entry-drone-id').value=droneId;
+  document.getElementById('nav-entry-type').value=type;
+  document.getElementById('nav-entry-id').value='';
+  document.getElementById('nav-entry-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('nav-entry-operator').value='';
+  document.getElementById('nav-entry-notes').value='';
+  document.getElementById('nav-entry-ver').value='';
+  document.getElementById('nav-modal-title').textContent=`הוסף — ${t?t.label:''}`;
+  document.getElementById('nav-entry-ver-group').style.display=t&&t.hasVersion?'block':'none';
+  openModal('modal-nav-entry');
+}
+
+function saveNavEntry(){
+  const droneId=document.getElementById('nav-entry-drone-id').value;
+  const type=document.getElementById('nav-entry-type').value;
+  const date=document.getElementById('nav-entry-date').value;
+  if(!date){alert('יש להזין תאריך');return;}
+  const drone=getDrone(droneId);if(!drone)return;
+  if(!drone.navigation)drone.navigation={};
+  if(!drone.navigation[type])drone.navigation[type]=[];
+  drone.navigation[type].push({
+    date,
+    operator:document.getElementById('nav-entry-operator').value.trim(),
+    notes:document.getElementById('nav-entry-notes').value.trim(),
+    version:document.getElementById('nav-entry-ver').value.trim(),
+  });
+  saveDB();closeModal('modal-nav-entry');renderNavigationPage();
+}
+
+function deleteNavEntry(droneId,type,idx){
+  confirmDel('האם למחוק רשומה זו?',()=>{
+    const drone=getDrone(droneId);if(!drone||!drone.navigation||!drone.navigation[type])return;
+    drone.navigation[type].splice(idx,1);
+    saveDB();renderNavigationPage();
+  });
+}
+
+// MALFUNCTIONS
+function getMalfunctions(){ return db.malfunctions||(db.malfunctions=[]); }
+function getDroneMalfunctions(droneId){ return getMalfunctions().filter(m=>m.droneId===droneId); }
+
+function renderMalfunctions(){
+  const listEl=document.getElementById('malfunctions-list');
+  const dSel=document.getElementById('mal-filter-drone');
+  const sSel=document.getElementById('mal-filter-status');
+  if(!listEl||!dSel||!sSel)return;
+
+  const curDrone=dSel.value, curStatus=sSel.value;
+  dSel.innerHTML='<option value="">כל הרחפנים</option>'+db.drones.map(d=>`<option value="${d.id}" ${d.id===curDrone?'selected':''}>[${d.tail}] ${d.name||''}</option>`).join('');
+
+  const all=getMalfunctions();
+  const openCount=all.filter(m=>m.status==='open').length;
+  const closedCount=all.filter(m=>m.status==='closed').length;
+  const affectedDrones=new Set(all.filter(m=>m.status==='open').map(m=>m.droneId)).size;
+
+  const stOpen=document.getElementById('mal-stat-open');
+  const stClosed=document.getElementById('mal-stat-closed');
+  const stDrones=document.getElementById('mal-stat-drones');
+  if(stOpen) stOpen.textContent=openCount;
+  if(stClosed) stClosed.textContent=closedCount;
+  if(stDrones) stDrones.textContent=affectedDrones;
+
+  let list=[...all].sort((a,b)=>{
+    if(a.status!==b.status) return a.status==='open'?-1:1;
+    return new Date(b.openedDate)-new Date(a.openedDate);
+  });
+  if(curDrone) list=list.filter(m=>m.droneId===curDrone);
+  if(curStatus) list=list.filter(m=>m.status===curStatus);
+
+  if(!list.length){
+    listEl.innerHTML='<div class="empty-state"><div class="ico">🔧</div>אין תקלות מתועדות</div>';
+    return;
+  }
+
+  listEl.innerHTML=list.map(m=>{
+    const drone=getDrone(m.droneId);
+    return`<div class="malfunction-card ${m.status==='open'?'open-mal':'closed-mal'}">
+      <div class="mal-header">
+        <span class="tail-num">${drone?drone.tail:'?'}</span>
+        ${drone?`<span style="font-size:12px;color:var(--text-sec);">${drone.name||''}</span>`:''}
+        <span class="mal-title">${m.title}</span>
+        <span class="mal-date">${m.openedDate}</span>
+        ${m.status==='open'?`<span class="badge-open">🔴 פתוחה</span>`:`<span class="badge-closed-mal">✅ סגורה</span>`}
+        <div class="actions">
+          ${m.status==='open'?`<button class="btn btn-primary btn-sm" style="background:var(--green);border-color:var(--green);" onclick="openCloseMalfunctionModal('${m.id}')">סגור תקלה</button>`:''}
+          <button class="btn btn-secondary btn-sm" onclick="openMalfunctionModal(null,'${m.id}')">עריכה</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteMalfunction('${m.id}')">מחק</button>
+        </div>
+      </div>
+      <div class="mal-work">
+        <span class="mal-work-label">עבודה נדרשת</span>
+        ${m.workRequired}
+      </div>
+      ${m.notes?`<div class="mal-work" style="border-bottom:none;padding-top:6px;"><span class="mal-work-label">הערות</span>${m.notes}</div>`:''}
+      ${m.status==='closed'?`<div class="mal-resolution">
+        <span class="mal-res-label">✅ פרטי סגירה</span>
+        <div class="mal-res-grid">
+          <span>מה בוצע: <b>${m.resolution.action}</b></span>
+          <span>בוצע ע"י: <b>${m.resolution.by}</b></span>
+          <span>תאריך סגירה: <b>${m.resolution.date}</b></span>
+        </div>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function openMalfunctionModal(presetDroneId, editId){
+  document.getElementById('mal-edit-id').value='';
+  document.getElementById('mal-title-input').value='';
+  document.getElementById('mal-work-required').value='';
+  document.getElementById('mal-notes').value='';
+  document.getElementById('mal-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('mal-modal-title').textContent='תקלה חדשה';
+
+  const dSel=document.getElementById('mal-drone');
+  dSel.innerHTML='<option value="">בחר רחפן...</option>'+db.drones.map(d=>`<option value="${d.id}">[${d.tail}] ${d.name||''}</option>`).join('');
+  if(presetDroneId) dSel.value=presetDroneId;
+
+  if(editId){
+    const m=getMalfunctions().find(x=>x.id===editId);
+    if(!m)return;
+    document.getElementById('mal-modal-title').textContent='עריכת תקלה';
+    document.getElementById('mal-edit-id').value=m.id;
+    document.getElementById('mal-drone').value=m.droneId;
+    document.getElementById('mal-date').value=m.openedDate;
+    document.getElementById('mal-title-input').value=m.title;
+    document.getElementById('mal-work-required').value=m.workRequired;
+    document.getElementById('mal-notes').value=m.notes||'';
+  }
+  openModal('modal-malfunction');
+}
+
+function saveMalfunction(){
+  const droneId=document.getElementById('mal-drone').value;
+  const date=document.getElementById('mal-date').value;
+  const title=document.getElementById('mal-title-input').value.trim();
+  const work=document.getElementById('mal-work-required').value.trim();
+  if(!droneId){alert('יש לבחור רחפן');return;}
+  if(!title){alert('יש להזין תיאור תקלה');return;}
+  if(!work){alert('יש לפרט את העבודה הנדרשת');return;}
+
+  const editId=document.getElementById('mal-edit-id').value;
+  const data={droneId, openedDate:date, title, workRequired:work, notes:document.getElementById('mal-notes').value.trim()};
+
+  if(!db.malfunctions) db.malfunctions=[];
+  if(editId){
+    const m=db.malfunctions.find(x=>x.id===editId);
+    if(m) Object.assign(m,data);
+  } else {
+    db.malfunctions.push({id:uid(), status:'open', resolution:null, ...data});
+  }
+  saveDB(); closeModal('modal-malfunction'); refreshAll();
+}
+
+function openCloseMalfunctionModal(malId){
+  const m=getMalfunctions().find(x=>x.id===malId);
+  if(!m)return;
+  const drone=getDrone(m.droneId);
+  document.getElementById('mal-close-id').value=malId;
+  document.getElementById('mal-close-action').value='';
+  document.getElementById('mal-close-by').value='';
+  document.getElementById('mal-close-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('mal-close-summary').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <span class="tail-num">${drone?drone.tail:'?'}</span>
+      <span style="font-weight:700;">${m.title}</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-sec);">עבודה נדרשת: ${m.workRequired}</div>`;
+  openModal('modal-malfunction-close');
+}
+
+function closeMalfunction(){
+  const malId=document.getElementById('mal-close-id').value;
+  const action=document.getElementById('mal-close-action').value.trim();
+  const by=document.getElementById('mal-close-by').value.trim();
+  const date=document.getElementById('mal-close-date').value;
+  if(!action){alert('יש לפרט מה בוצע');return;}
+  if(!by){alert('יש לציין מי ביצע');return;}
+  if(!date){alert('יש להזין תאריך סגירה');return;}
+
+  const m=getMalfunctions().find(x=>x.id===malId);
+  if(!m)return;
+  m.status='closed';
+  m.resolution={action, by, date};
+  saveDB(); closeModal('modal-malfunction-close'); refreshAll();
+}
+
+function deleteMalfunction(id){
+  confirmDel('האם למחוק תקלה זו?',()=>{
+    db.malfunctions=db.malfunctions.filter(m=>m.id!==id);
+    saveDB(); refreshAll();
+  });
+}
+
+// DRONE DETAIL VIEW
+function openDroneDetail(droneId){
+  const drone=getDrone(droneId);
+  if(!drone)return;
+  const flights=[...getDroneFlights(droneId)].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const totalMin=flights.reduce((a,f)=>a+(parseInt(f.duration)||0),0);
+  const totalEvents=flights.reduce((a,f)=>a+(f.events||[]).length,0);
+  const mals=getDroneMalfunctions(droneId);
+  const openMals=mals.filter(m=>m.status==='open');
+
+  // Header
+  document.getElementById('drone-detail-header').innerHTML=`
+    <div class="detail-tail-big">${drone.tail}</div>
+    <div>
+      <div class="detail-drone-name">${drone.name||'ללא כינוי'}</div>
+      <div class="detail-drone-model">${drone.model||''}</div>
+    </div>
+    <div style="margin-right:auto;">${statusBadge(drone.status)}</div>`;
+
+  // Stats strip
+  document.getElementById('drone-detail-stats').innerHTML=`
+    <div class="detail-stat"><div class="detail-stat-label">טיסות</div><div class="detail-stat-val">${flights.length}</div></div>
+    <div class="detail-stat"><div class="detail-stat-label">שעות טיסה</div><div class="detail-stat-val">${fmtDuration(totalMin)}</div></div>
+    <div class="detail-stat"><div class="detail-stat-label">אירועים מיוחדים</div><div class="detail-stat-val">${totalEvents}</div></div>
+    <div class="detail-stat"><div class="detail-stat-label">תקלות פתוחות</div><div class="detail-stat-val" style="${openMals.length?'color:var(--red)':''}">${openMals.length}</div></div>`;
+
+  const bodyEl=document.querySelector('#modal-drone-detail [style*="overflow-y"]');
+
+  // Malfunctions section
+  const malDroneId=droneId;
+  let malHTML=`<div class="detail-section-title" style="display:flex;justify-content:space-between;align-items:center;"><span>🔧 תקלות</span><button class="btn btn-sm" style="background:var(--red-l);color:var(--red);border-color:#f5a89e;font-size:11px;" onclick="closeModal('modal-drone-detail');openMalfunctionModal('${malDroneId}')">+ תקלה חדשה</button></div>`;
+  if(!mals.length){
+    malHTML+='<div style="padding:12px 20px;font-size:12px;color:var(--text-sec);">אין תקלות מתועדות לרחפן זה</div>';
+  } else {
+    malHTML+=mals.sort((a,b)=>a.status==='open'?-1:1).map(m=>`
+      <div class="malfunction-card ${m.status==='open'?'open-mal':'closed-mal'}" style="margin:8px 16px;">
+        <div class="mal-header" style="padding:10px 14px;">
+          ${m.status==='open'?'<span class="badge-open">🔴 פתוחה</span>':'<span class="badge-closed-mal">✅ סגורה</span>'}
+          <span class="mal-title">${m.title}</span>
+          <span class="mal-date">${m.openedDate}</span>
+          ${m.status==='open'?`<button class="btn btn-sm" style="background:var(--green);color:#fff;border-color:var(--green);font-size:11px;" onclick="closeModal('modal-drone-detail');openCloseMalfunctionModal('${m.id}')">סגור תקלה</button>`:''}
+        </div>
+        <div class="mal-work" style="padding:4px 14px 10px;">
+          <span class="mal-work-label">עבודה נדרשת</span>${m.workRequired}
+        </div>
+        ${m.notes?`<div class="mal-work" style="border-bottom:none;padding:4px 14px 8px;"><span class="mal-work-label">הערות</span>${m.notes}</div>`:''}
+        ${m.status==='closed'?`<div class="mal-resolution">
+          <span class="mal-res-label">✅ פרטי סגירה</span>
+          <div class="mal-res-grid"><span>מה בוצע: <b>${m.resolution.action}</b></span><span>ע"י: <b>${m.resolution.by}</b></span><span>תאריך: <b>${m.resolution.date}</b></span></div>
+        </div>`:''}
+      </div>`).join('');
+  }
+
+  // Flights section
+  let flightsHTML='<div class="detail-section-title">היסטוריית טיסות ואירועים</div>';
+  if(!flights.length){
+    flightsHTML+='<div class="empty-state"><div class="ico">✈</div>אין טיסות מתועדות לרחפן זה</div>';
+  } else {
+    flightsHTML+=flights.map(f=>{
+      const evHTML=(f.events||[]).map(eid=>{
+        const et=getEventType(eid);
+        return`<span class="event-tag ${et?et.severity:'warning'}">⚑ ${et?et.name:eid}</span>`;
+      }).join('');
+      return`<div class="flight-row">
+        <div class="flight-row-header">
+          <span style="font-family:var(--mono);font-size:13px;font-weight:700;">${f.date}${f.time?' · '+f.time:''}</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--blue);background:var(--blue-l);padding:2px 8px;">⏱ ${fmtDuration(f.duration)}</span>
+          ${f.location?`<span style="font-size:12px;color:var(--text-sec);">📍 ${f.location}</span>`:''}
+          ${f.pilot?`<span style="font-size:12px;color:var(--text-sec);">👤 ${f.pilot}</span>`:''}
+          <div style="margin-right:auto;">
+            <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-drone-detail');openFlightModal('${f.id}')">עריכה</button>
+          </div>
+        </div>
+        ${evHTML?`<div class="flight-row-events">${evHTML}</div>`:'<div style="font-size:11px;color:var(--border-dark);margin-top:6px;">אין אירועים מיוחדים</div>'}
+        ${f.notes?`<div class="flight-row-notes">${f.notes}</div>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  bodyEl.innerHTML=malHTML+flightsHTML;
+
+  document.getElementById('drone-detail-add-flight-btn').onclick=()=>{
+    closeModal('modal-drone-detail');
+    openFlightModal(null, droneId);
+  };
+
+  openModal('modal-drone-detail');
+}
+
+// SEED DEMO
+function seedDemo(){
+  if(db.drones.length)return;
+  const sw1=uid(),sw2=uid(),sw3=uid();
+  db.software=[{id:sw1,name:'FlightCore OS',version:'3.2.1',category:'navigation',desc:'מערכת ניווט ראשית'},{id:sw2,name:'SkyComm Pro',version:'2.0.4',category:'comms',desc:'תקשורת מוצפנת'},{id:sw3,name:'ThermalVision',version:'1.5.0',category:'sensor',desc:'עיבוד תמונה תרמית'}];
+  const et1=uid(),et2=uid(),et3=uid();
+  db.eventTypes=[{id:et1,name:'אובדן תקשורת',severity:'critical',desc:'ניתוק קשר עם הרחפן'},{id:et2,name:'כשל GPS',severity:'warning',desc:'אות GPS חלש'},{id:et3,name:'סוללה נמוכה',severity:'info',desc:'מתחת ל-20%'}];
+  const d1=uid(),d2=uid(),d3=uid();
+  db.drones=[{id:d1,tail:'4X-BDB',name:'Raven Alpha',model:'DJI Matrice 300',status:'active',notes:'',software:[{swId:sw1,version:'3.2.1'},{swId:sw2,version:'2.0.4'}],
+    navigation:{
+      magneto:[{date:'2026-01-10',operator:'יוסי כהן',notes:'כיול שגרתי לאחר תחזוקה',version:''},{date:'2025-11-05',operator:'דנה לוי',notes:'',version:''}],
+      doppler:[{date:'2026-02-01',operator:'יוסי כהן',notes:'כיול ראשוני',version:''}],
+      navFlight:[{date:'2026-01-20',operator:'מיכאל גל',notes:'הקלטה מוצלחת, אזור צפוני',version:''}],
+      navCore:[{date:'2026-02-10',operator:'יוסי כהן',notes:'שדרוג גרסה',version:'3.2.1'}]
+    }
+  },{id:d2,tail:'4X-CCC',name:'Hawk One',model:'Parrot ANAFI USA',status:'idle',notes:'',software:[{swId:sw1,version:'3.0.0'},{swId:sw3,version:'1.5.0'}],
+    navigation:{
+      magneto:[{date:'2025-12-15',operator:'שרה נ׳',notes:'',version:''}],
+      doppler:[],navFlight:[],navCore:[]
+    }
+  },{id:d3,tail:'4X-DDD',name:'Scout III',model:'Skydio 2+',status:'maintenance',notes:'נשלח לתחזוקה שגרתית',software:[],navigation:{magneto:[],doppler:[],navFlight:[],navCore:[]}}];
+  db.flights=[{id:uid(),droneId:d1,date:'2026-02-18',time:'07:30',duration:75,location:'אזור צפוני',pilot:'יוסי כהן',notes:'סיור שגרתי',events:[et3]},{id:uid(),droneId:d1,date:'2026-02-20',time:'09:00',duration:45,location:'ים המלח',pilot:'דנה לוי',notes:'',events:[]},{id:uid(),droneId:d2,date:'2026-02-19',time:'14:00',duration:120,location:'גלבוע',pilot:'מיכאל גל',notes:'תקלה קצרה בשידור',events:[et1,et2]},{id:uid(),droneId:d2,date:'2026-02-21',time:'06:00',duration:30,location:'נגב',pilot:'שרה נ׳',notes:'',events:[]}];
+  saveDB('drones');saveDB('flights');
+}
+
+// ============================================================
+//  STARTUP
+// ============================================================
+loadGHConfig();
+// Users loaded on demand at login — no blocking call here
+</script>
+</body>
+</html>
